@@ -1,5 +1,5 @@
 # AI-Assistant
 
-RAG-ассистент для студентов по проектной деятельности.
+RAG-based assistant for students on project management.
 
-Консультирует по вопросам Agile, Scrum, DevOps, составления ТЗ и другим инженерным практикам на основе проверенной базы знаний.
+Provides guidance on Agile, Scrum, DevOps, writing technical specifications, and other engineering practices based on a curated knowledge base.

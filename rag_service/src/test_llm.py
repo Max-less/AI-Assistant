@@ -7,17 +7,17 @@ load_dotenv()
 auth_key = os.getenv("GIGACHAT_AUTH_KEY")
 
 if not auth_key or auth_key == "your-authorization-key-here":
-    print("ОШИБКА: Укажите GIGACHAT_AUTH_KEY в файле .env")
+    print("ERROR: Set GIGACHAT_AUTH_KEY in .env file")
     exit(1)
 
-print("Подключаюсь к GigaChat...")
+print("Connecting to GigaChat...")
 
 try:
     with GigaChat(credentials=auth_key, verify_ssl_certs=False) as giga:
         response = giga.chat("Привет! Кратко объясни, что такое Scrum.")
         print()
-        print("Ответ GigaChat:")
+        print("GigaChat response:")
         print(response.choices[0].message.content)
 except Exception as e:
-    print(f"ОШИБКА при обращении к GigaChat API: {e}")
+    print(f"ERROR calling GigaChat API: {e}")
     exit(1)

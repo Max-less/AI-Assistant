@@ -9,7 +9,7 @@ __pycache__/
 venv/
 .venv/
 
-# Data (large files, not for git)
+# Data (large files, not tracked)
 rag_service/data/
 
 # IDE
