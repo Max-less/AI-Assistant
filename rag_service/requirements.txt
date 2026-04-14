@@ -1,0 +1,8 @@
+# GigaChat API
+gigachat==0.1.36
+
+# Environment
+python-dotenv==1.0.1
+
+# HTTP
+httpx==0.27.2
