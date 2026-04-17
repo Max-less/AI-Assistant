@@ -9,17 +9,11 @@ from chunker import Chunk
 
 
 class VectorStore:
-    """Stores chunk vectors and performs top-k nearest neighbor search."""
-
     def __init__(self, vectors: np.ndarray, chunks: list[Chunk]):
         self.vectors = vectors
         self.chunks = chunks
 
     def search(self, query_vec: np.ndarray, top_k: int = 5) -> list[tuple[Chunk, float]]:
-        """
-        Find top_k most similar chunks to query_vec.
-        Returns list of (Chunk, score) sorted by descending score.
-        """
         scores = self.vectors @ query_vec
         top_k = min(top_k, len(self.chunks))
         top_indices = np.argpartition(scores, -top_k)[-top_k:]
@@ -29,9 +23,6 @@ class VectorStore:
 
     @classmethod
     def load(cls, vectors_path: str, meta_path: str) -> "VectorStore":
-        """
-        Load from vectors.npy and chunks_meta.json produced by build_index.py.
-        """
         vectors = np.load(vectors_path)
 
         with open(meta_path, "r", encoding="utf-8") as f:
@@ -51,9 +42,6 @@ class VectorStore:
 
     @classmethod
     def load_with_texts(cls, vectors_path: str, meta_path: str, chunks_path: str) -> "VectorStore":
-        """
-        Load vectors + full chunk texts (for displaying search results).
-        """
         vectors = np.load(vectors_path)
 
         with open(chunks_path, "r", encoding="utf-8") as f:
