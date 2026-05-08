@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from dotenv import load_dotenv
 
+from bm25 import BM25
 from embedder import Embedder
 from llm_client import LLMClient
 from query_expander import QueryExpander
@@ -48,9 +49,14 @@ def main():
     print("Loading embedder...")
     embedder = Embedder()
 
+    print("Fitting BM25...")
+    bm25 = BM25().fit([c.text for c in store.chunks])
+
+    alpha = float(os.getenv("BM25_ALPHA", "0.5"))
+
     llm = LLMClient(auth_key)
     expander = QueryExpander(llm)
-    retriever = Retriever(store, embedder, expander=expander)
+    retriever = Retriever(store, embedder, bm25=bm25, expander=expander, alpha=alpha)
     pipeline = RAGPipeline(retriever, llm)
 
     print(f"\nQuestion: {question}")
