@@ -58,10 +58,18 @@ def main():
     bm25 = BM25().fit([c.text for c in store.chunks])
 
     alpha = float(os.getenv("BM25_ALPHA", "0.5"))
+    score_threshold = float(os.getenv("RAG_SCORE_THRESHOLD", "0.5"))
 
     llm = LLMClient(auth_key)
     expander = QueryExpander(llm)
-    retriever = Retriever(store, embedder, bm25=bm25, expander=expander, alpha=alpha)
+    retriever = Retriever(
+        store,
+        embedder,
+        bm25=bm25,
+        expander=expander,
+        alpha=alpha,
+        score_threshold=score_threshold,
+    )
     pipeline = RAGPipeline(retriever, llm)
 
     history: list[dict] = []
