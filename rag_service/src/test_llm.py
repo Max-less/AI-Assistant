@@ -6,7 +6,7 @@ load_dotenv()
 
 auth_key = os.getenv("GIGACHAT_AUTH_KEY")
 
-if not auth_key or auth_key == "your-authorization-key-here":
+if not auth_key:
     print("ERROR: Set GIGACHAT_AUTH_KEY in .env file")
     exit(1)
 
