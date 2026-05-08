@@ -16,6 +16,7 @@ from embedder import Embedder
 from llm_client import LLMClient
 from query_expander import QueryExpander
 from rag_pipeline import RAGPipeline
+from reranker import Reranker
 from retriever import Retriever
 from vector_store import VectorStore
 
@@ -59,6 +60,12 @@ def main():
 
     alpha = float(os.getenv("BM25_ALPHA", "0.5"))
     score_threshold = float(os.getenv("RAG_SCORE_THRESHOLD", "0.5"))
+    use_reranker = os.getenv("RAG_USE_RERANKER", "1") not in ("0", "false", "False", "")
+
+    reranker = None
+    if use_reranker:
+        print("Loading reranker (first run downloads ~568MB)...")
+        reranker = Reranker()
 
     llm = LLMClient(auth_key)
     expander = QueryExpander(llm)
@@ -69,8 +76,9 @@ def main():
         expander=expander,
         alpha=alpha,
         score_threshold=score_threshold,
+        reranker=reranker,
     )
-    pipeline = RAGPipeline(retriever, llm)
+    pipeline = RAGPipeline(retriever, llm, top_k=5)
 
     history: list[dict] = []
 
