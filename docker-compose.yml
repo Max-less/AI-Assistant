@@ -1,0 +1,32 @@
+services:
+  rag_service:
+    build:
+      context: .
+      dockerfile: rag_service/Dockerfile
+    container_name: rag_service
+    ports:
+      - "8000:8000"
+    env_file:
+      - rag_service/.env
+    environment:
+      RAG_USE_RERANKER: "1"
+      RAG_TOP_K: "5"
+      BM25_ALPHA: "0.5"
+      RAG_SCORE_THRESHOLD: "0.5"
+      HF_HOME: /root/.cache/huggingface
+    volumes:
+      - ./rag_service/data:/app/rag_service/data:ro
+      - hf_cache:/root/.cache/huggingface
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; r=urllib.request.urlopen('http://localhost:8000/health',timeout=2); sys.exit(0 if r.status==200 else 1)"
+      interval: 30s
+      timeout: 5s
+      start_period: 120s
+      retries: 3
+
+volumes:
+  hf_cache:
