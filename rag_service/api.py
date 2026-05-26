@@ -3,10 +3,6 @@ HTTP API for the RAG service.
 
 Run locally:
     uvicorn rag_service.api:app --host 0.0.0.0 --port 8000
-
-Heavy components (vector store, embedder, BM25, reranker, LLM client) are built
-once during the FastAPI lifespan and reused across requests. Per-request flags
-allow toggling the query expander and the cross-encoder reranker independently.
 """
 
 import os
@@ -16,6 +12,7 @@ from contextlib import asynccontextmanager
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
@@ -118,6 +115,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="RAG Service", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.post("/ask", response_model=AskResponse)
