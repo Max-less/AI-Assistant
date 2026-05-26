@@ -10,9 +10,13 @@ services:
       - rag_service/.env
     environment:
       RAG_USE_RERANKER: "1"
+      RAG_USE_EXPANDER: "1"
       RAG_TOP_K: "5"
+      RAG_RERANK_POOL: "10"
       BM25_ALPHA: "0.5"
       RAG_SCORE_THRESHOLD: "0.5"
+      GIGACHAT_TIMEOUT: "20"
+      GIGACHAT_MAX_RETRIES: "2"
       HF_HOME: /root/.cache/huggingface
     volumes:
       - ./rag_service/data:/app/rag_service/data:ro
