@@ -10,6 +10,8 @@ from ..schemas import ChatRequest, ChatResponse, MessageOut
 
 router = APIRouter()
 
+HISTORY_TURNS = 6
+
 
 def _title_from(question: str) -> str:
     title = question.strip().splitlines()[0] if question.strip() else "Новая беседа"
@@ -26,7 +28,10 @@ def post_chat(req: ChatRequest, request: Request, db: Session = Depends(get_db))
         db.add(session)
         db.flush()
 
-    history = [{"role": m.role, "content": m.content} for m in session.messages]
+    history = [
+        {"role": m.role, "content": m.content}
+        for m in session.messages[-HISTORY_TURNS:]
+    ]
 
     user_msg = Message(session_id=session.id, role="user", content=req.question)
     db.add(user_msg)
