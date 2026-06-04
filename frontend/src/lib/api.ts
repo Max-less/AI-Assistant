@@ -1,44 +1,61 @@
 import { API_BASE } from "./config"
 
-export type Role = "user" | "assistant" | "system"
+export type Role = "user" | "assistant"
+export type FeedbackValue = -1 | 0 | 1
 
-export interface HistoryItem {
+export interface MessageOut {
+  id: number
   role: Role
   content: string
+  sources?: string[] | null
+  latency_ms?: number | null
+  latency_breakdown?: Record<string, number> | null
+  created_at: string
+  feedback?: -1 | 1 | null
 }
 
-export interface AskRequest {
+export interface ChatRequest {
   question: string
-  history?: HistoryItem[]
-  top_k?: number | null
-  use_expander?: boolean | null
-  use_reranker?: boolean | null
+  session_id: number | null
 }
 
-export interface AskResponse {
-  answer: string
-  sources: string[]
-  latency_ms: number
-  latency_breakdown: Record<string, number>
+export interface ChatResponse {
+  session_id: number
+  message: MessageOut
+}
+
+export interface SessionSummary {
+  id: number
+  title: string
+  created_at: string
+  message_count: number
+}
+
+export interface SessionDetail {
+  id: number
+  title: string
+  created_at: string
+}
+
+export interface HistoryResponse {
+  session: SessionDetail
+  messages: MessageOut[]
 }
 
 export interface HealthResponse {
-  status: "ok" | "loading"
-  index_loaded: boolean
+  web: "ok"
+  rag: "ok" | "loading" | "down"
   chunk_count: number | null
 }
 
-/** POST /ask — send a question plus prior turns, get an answer with sources. */
-export async function askQuestion(
-  question: string,
-  history: HistoryItem[],
-): Promise<AskResponse> {
-  const res = await fetch(`${API_BASE}/ask`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, history } satisfies AskRequest),
+async function jsonRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers ?? {}),
+    },
   })
-
   if (!res.ok) {
     let detail = `HTTP ${res.status}`
     try {
@@ -49,13 +66,31 @@ export async function askQuestion(
     }
     throw new Error(detail)
   }
-
-  return (await res.json()) as AskResponse
+  return (await res.json()) as T
 }
 
-/** GET /health — service readiness and indexed chunk count. */
-export async function getHealth(): Promise<HealthResponse> {
-  const res = await fetch(`${API_BASE}/health`)
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  return (await res.json()) as HealthResponse
+export function postChat(question: string, sessionId: number | null): Promise<ChatResponse> {
+  return jsonRequest<ChatResponse>("/api/chat", {
+    method: "POST",
+    body: JSON.stringify({ question, session_id: sessionId } satisfies ChatRequest),
+  })
+}
+
+export function getSessions(): Promise<SessionSummary[]> {
+  return jsonRequest<SessionSummary[]>("/api/sessions")
+}
+
+export function getHistory(sessionId: number): Promise<HistoryResponse> {
+  return jsonRequest<HistoryResponse>(`/api/history/${sessionId}`)
+}
+
+export function postFeedback(messageId: number, value: FeedbackValue): Promise<{ ok: boolean }> {
+  return jsonRequest<{ ok: boolean }>("/api/feedback", {
+    method: "POST",
+    body: JSON.stringify({ message_id: messageId, value }),
+  })
+}
+
+export function getHealth(): Promise<HealthResponse> {
+  return jsonRequest<HealthResponse>("/api/health")
 }
