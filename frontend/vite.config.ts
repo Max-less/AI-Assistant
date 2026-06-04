@@ -12,5 +12,9 @@ export default defineConfig({
   server: {
     host: true, // bind both 127.0.0.1 and ::1 so the browser connects either way
     port: 5173,
+    proxy: {
+      // Forward API calls to the web_backend (BFF) during development.
+      "/api": "http://localhost:8001",
+    },
   },
 })
