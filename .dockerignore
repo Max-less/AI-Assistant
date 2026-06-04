@@ -1,0 +1,26 @@
+.git
+.gitignore
+.dockerignore
+
+# Frontend artifacts
+frontend/node_modules
+frontend/dist
+frontend/.vite
+
+# Python venvs and caches
+rag_service/venv
+rag_service/.venv
+web/backend/.venv
+**/__pycache__
+**/*.pyc
+
+# Local DB / logs
+*.db
+uvicorn.err
+uvicorn.out
+
+# Editor cruft
+.vscode
+.idea
+.DS_Store
+Thumbs.db

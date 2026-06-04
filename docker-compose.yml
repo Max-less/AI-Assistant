@@ -32,5 +32,34 @@ services:
       start_period: 120s
       retries: 3
 
+  web_backend:
+    build:
+      context: .
+      dockerfile: web/backend/Dockerfile
+    container_name: web_backend
+    environment:
+      RAG_SERVICE_URL: http://rag_service:8000
+      RAG_TIMEOUT: "60"
+      DATABASE_URL: sqlite:////data/web.db
+      WEB_CORS_ORIGINS: http://localhost:5173,http://localhost:8080
+    volumes:
+      - web_db:/data
+    depends_on:
+      rag_service:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: frontend
+    ports:
+      - "8090:80"
+    depends_on:
+      - web_backend
+
 volumes:
   hf_cache:
+  web_db:
