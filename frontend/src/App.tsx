@@ -46,6 +46,7 @@ export default function App() {
   const [sessions, setSessions] = useState<SessionSummary[]>([])
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(false)
+  const [composerHeight, setComposerHeight] = useState(160)
 
   const refreshSessions = useCallback(async () => {
     try {
@@ -177,8 +178,13 @@ export default function App() {
       />
       <main className="relative flex h-screen flex-1 flex-col bg-bg-tint md:ml-[280px]">
         <TopBar title={sessionTitle ?? "Новая беседа"} />
-        <MessageList messages={messages} loading={loading} onFeedback={handleFeedback} />
-        <Composer onSend={handleSend} disabled={loading} />
+        <MessageList
+          messages={messages}
+          loading={loading}
+          onFeedback={handleFeedback}
+          bottomInset={composerHeight}
+        />
+        <Composer onSend={handleSend} disabled={loading} onHeightChange={setComposerHeight} />
       </main>
     </div>
   )

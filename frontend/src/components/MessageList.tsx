@@ -54,17 +54,23 @@ interface MessageListProps {
   messages: ChatMessage[]
   loading: boolean
   onFeedback: (messageId: number, value: FeedbackValue) => void
+  bottomInset?: number
 }
 
-export function MessageList({ messages, loading, onFeedback }: MessageListProps) {
+export function MessageList({ messages, loading, onFeedback, bottomInset }: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, loading])
 
+  const paddingBottom = (bottomInset ?? 160) + 24
+
   return (
-    <div className="custom-scrollbar flex flex-1 flex-col items-center overflow-y-auto p-4 pb-40 md:p-8">
+    <div
+      className="custom-scrollbar flex flex-1 flex-col items-center overflow-y-auto p-4 md:p-8"
+      style={{ paddingBottom }}
+    >
       <div className="flex w-full max-w-[820px] flex-col gap-8">
         {messages.length === 0 && !loading && <EmptyState />}
         {messages.map((m) =>
