@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 from dotenv import load_dotenv
 
 from bm25 import BM25
+from dialog_manager import DialogManager
 from embedder import Embedder
 from llm_client import LLMClient
 from query_expander import QueryExpander
@@ -89,6 +90,7 @@ async def lifespan(app: FastAPI):
     reranker = Reranker() if _env_flag("RAG_USE_RERANKER", default=True) else None
     llm = LLMClient(auth_key)
     expander = QueryExpander(llm)
+    dialog_manager = DialogManager(llm)
 
     # Warm up models so the first real request doesn't pay first-inference cost.
     embedder.embed_query("warmup")
@@ -101,6 +103,7 @@ async def lifespan(app: FastAPI):
     app.state.reranker = reranker
     app.state.llm = llm
     app.state.expander = expander
+    app.state.dialog_manager = dialog_manager
     app.state.default_use_expander = _env_flag("RAG_USE_EXPANDER", default=True)
     app.state.default_use_reranker = _env_flag("RAG_USE_RERANKER", default=True)
     app.state.default_top_k = int(os.getenv("RAG_TOP_K", "5"))
@@ -145,7 +148,12 @@ def ask(req: AskRequest, request: Request) -> AskResponse:
         alpha=s.alpha,
         score_threshold=s.score_threshold,
     )
-    pipeline = RAGPipeline(retriever, s.llm, top_k=s.default_top_k)
+    pipeline = RAGPipeline(
+        retriever,
+        s.llm,
+        dialog_manager=s.dialog_manager,
+        top_k=s.default_top_k,
+    )
 
     history_dicts = (
         [h.model_dump() for h in req.history] if req.history else None
