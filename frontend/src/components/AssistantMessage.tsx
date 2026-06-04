@@ -1,5 +1,6 @@
 import ReactMarkdown, { type Components } from "react-markdown"
 import remarkGfm from "remark-gfm"
+import type { FeedbackValue } from "@/lib/api"
 import type { ChatMessage } from "@/types"
 import { SourcesPanel } from "./SourcesPanel"
 
@@ -50,6 +51,59 @@ const markdownComponents: Components = {
   td: ({ children }) => <td className="p-3 text-ink-2 align-top">{children}</td>,
 }
 
+function FeedbackBar({
+  message,
+  onFeedback,
+}: {
+  message: ChatMessage
+  onFeedback: (messageId: number, value: FeedbackValue) => void
+}) {
+  if (message.messageId == null) return null
+  const current = message.feedback ?? null
+
+  function toggle(value: 1 | -1) {
+    if (message.messageId == null) return
+    onFeedback(message.messageId, current === value ? 0 : value)
+  }
+
+  const baseBtn =
+    "flex items-center gap-1 rounded-md border px-2 py-1 font-mono-label-xs text-mono-label-xs transition-colors"
+  const inactive = "border-hairline bg-surface text-ink-3 hover:bg-surface-container hover:text-ink"
+  const up = current === 1
+  const down = current === -1
+
+  return (
+    <div className="mt-3 flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => toggle(1)}
+        title={up ? "Убрать оценку" : "Полезный ответ"}
+        className={`${baseBtn} ${
+          up
+            ? "border-success-fg/30 bg-success-bg text-success-fg"
+            : inactive
+        }`}
+      >
+        <span className={`material-symbols-outlined text-[14px] ${up ? "filled" : ""}`}>
+          thumb_up
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={() => toggle(-1)}
+        title={down ? "Убрать оценку" : "Бесполезный ответ"}
+        className={`${baseBtn} ${
+          down ? "border-error/40 bg-error-container text-on-error-container" : inactive
+        }`}
+      >
+        <span className={`material-symbols-outlined text-[14px] ${down ? "filled" : ""}`}>
+          thumb_down
+        </span>
+      </button>
+    </div>
+  )
+}
+
 function Telemetry({ message }: { message: ChatMessage }) {
   if (message.latencyMs == null) return null
   const bd = message.latencyBreakdown ?? {}
@@ -63,7 +117,12 @@ function Telemetry({ message }: { message: ChatMessage }) {
   )
 }
 
-export function AssistantMessage({ message }: { message: ChatMessage }) {
+interface AssistantMessageProps {
+  message: ChatMessage
+  onFeedback: (messageId: number, value: FeedbackValue) => void
+}
+
+export function AssistantMessage({ message, onFeedback }: AssistantMessageProps) {
   return (
     <div className="flex w-full max-w-[95%] flex-col gap-2 self-start md:max-w-[85%]">
       <div className="flex items-center gap-2 px-1">
@@ -101,6 +160,7 @@ export function AssistantMessage({ message }: { message: ChatMessage }) {
 
         {!message.error && <SourcesPanel sources={message.sources ?? []} />}
         {!message.error && <Telemetry message={message} />}
+        {!message.error && <FeedbackBar message={message} onFeedback={onFeedback} />}
       </div>
     </div>
   )

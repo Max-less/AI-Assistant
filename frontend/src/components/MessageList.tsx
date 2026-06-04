@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react"
+import type { FeedbackValue } from "@/lib/api"
 import type { ChatMessage } from "@/types"
 import { AssistantMessage } from "./AssistantMessage"
 
@@ -49,13 +50,13 @@ function EmptyState() {
   )
 }
 
-export function MessageList({
-  messages,
-  loading,
-}: {
+interface MessageListProps {
   messages: ChatMessage[]
   loading: boolean
-}) {
+  onFeedback: (messageId: number, value: FeedbackValue) => void
+}
+
+export function MessageList({ messages, loading, onFeedback }: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -70,7 +71,7 @@ export function MessageList({
           m.role === "user" ? (
             <UserMessage key={m.id} content={m.content} />
           ) : (
-            <AssistantMessage key={m.id} message={m} />
+            <AssistantMessage key={m.id} message={m} onFeedback={onFeedback} />
           ),
         )}
         {loading && <Thinking />}

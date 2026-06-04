@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { getHealth, type HealthResponse } from "@/lib/api"
 
-// Top bar — title is static; the knowledge-base indicator is wired to /health.
+// Top bar — title from current session; status indicator wired to /api/health.
 export function TopBar({ title }: { title: string }) {
   const [health, setHealth] = useState<HealthResponse | null>(null)
   const [error, setError] = useState(false)
@@ -16,17 +16,18 @@ export function TopBar({ title }: { title: string }) {
     }
   }, [])
 
-  const online = health?.status === "ok"
-  const dotClass = error
-    ? "bg-error"
-    : online
-      ? "bg-success-fg"
-      : "bg-warning-fg animate-pulse"
-  const statusText = error
-    ? "База знаний: нет соединения"
-    : online
-      ? `База знаний: ${health?.chunk_count ?? 0} фрагментов`
-      : "База знаний: загрузка…"
+  let dotClass: string
+  let statusText: string
+  if (error || health?.rag === "down") {
+    dotClass = "bg-error"
+    statusText = "База знаний: нет соединения"
+  } else if (health?.rag === "ok") {
+    dotClass = "bg-success-fg"
+    statusText = `База знаний: ${health.chunk_count ?? 0} фрагментов`
+  } else {
+    dotClass = "bg-warning-fg animate-pulse"
+    statusText = "База знаний: загрузка…"
+  }
 
   return (
     <header

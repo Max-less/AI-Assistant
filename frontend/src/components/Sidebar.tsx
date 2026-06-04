@@ -1,24 +1,51 @@
+import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
+import type { SessionSummary } from "@/lib/api"
 
-// Static sidebar — preserves the Stitch design. Conversation list, search and
-// profile are visual only in this first version (chat state is not persisted).
-const groups: { label: string; items: string[]; activeIndex?: number }[] = [
-  {
-    label: "Сегодня",
-    items: ["Структура ТЗ для курсового проекта", "Рецензирование кода (GOST)"],
-    activeIndex: 0,
-  },
-  {
-    label: "Вчера",
-    items: ["Жизненный цикл ПО", "Требования к оформлению схем"],
-  },
-  {
-    label: "На этой неделе",
-    items: ["Velocity и burndown", "Анализ предметной области"],
-  },
-]
+interface SidebarProps {
+  sessions: SessionSummary[]
+  activeId: number | null
+  onSelect: (id: number) => void
+  onNewChat: () => void
+}
 
-export function Sidebar() {
+interface SessionGroup {
+  label: string
+  items: SessionSummary[]
+}
+
+// Bucket sessions by relative date (today / yesterday / this week / earlier),
+// matching the look of the original Stitch mockup.
+function groupSessions(sessions: SessionSummary[]): SessionGroup[] {
+  const now = new Date()
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  const startOfYesterday = startOfToday - 24 * 60 * 60 * 1000
+  const startOfWeek = startOfToday - 7 * 24 * 60 * 60 * 1000
+
+  const buckets: Record<string, SessionSummary[]> = {
+    today: [],
+    yesterday: [],
+    week: [],
+    earlier: [],
+  }
+  for (const s of sessions) {
+    const t = new Date(s.created_at).getTime()
+    if (t >= startOfToday) buckets.today.push(s)
+    else if (t >= startOfYesterday) buckets.yesterday.push(s)
+    else if (t >= startOfWeek) buckets.week.push(s)
+    else buckets.earlier.push(s)
+  }
+  return [
+    { label: "Сегодня", items: buckets.today },
+    { label: "Вчера", items: buckets.yesterday },
+    { label: "На этой неделе", items: buckets.week },
+    { label: "Ранее", items: buckets.earlier },
+  ].filter((g) => g.items.length > 0)
+}
+
+export function Sidebar({ sessions, activeId, onSelect, onNewChat }: SidebarProps) {
+  const groups = useMemo(() => groupSessions(sessions), [sessions])
+
   return (
     <nav className="z-20 hidden h-screen w-[280px] flex-col border-r border-border-2 bg-surface-container-low p-4 md:fixed md:left-0 md:top-0 md:flex">
       <div className="mb-6 flex items-center gap-2 px-2">
@@ -28,48 +55,45 @@ export function Sidebar() {
         </span>
       </div>
 
-      <Button variant="outline" className="mb-6 w-full justify-start">
+      <Button variant="outline" className="mb-6 w-full justify-start" onClick={onNewChat}>
         <span className="material-symbols-outlined text-[18px]">add</span>
         <span>Новая беседа</span>
       </Button>
 
-      <div className="relative mb-6">
-        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-ink-3">
-          search
-        </span>
-        <input
-          type="text"
-          placeholder="Поиск по беседам..."
-          className="w-full rounded-lg border-none bg-surface-container-highest py-2 pl-9 pr-3 font-body-secondary text-body-secondary text-ink placeholder:text-ink-4 focus:outline-none focus:ring-1 focus:ring-accent"
-        />
-      </div>
-
       <div className="custom-scrollbar flex-1 overflow-y-auto pr-2">
-        {groups.map((group) => (
-          <div key={group.label} className="mb-6">
-            <h3 className="mb-2 px-2 font-ui-label text-ui-label uppercase tracking-wider text-ink-3">
-              {group.label}
-            </h3>
-            <ul className="space-y-1">
-              {group.items.map((item, i) => {
-                const active = group.activeIndex === i
-                return (
-                  <li key={item}>
-                    <button
-                      className={
-                        active
-                          ? "w-full truncate rounded-r-md border-l-2 border-accent bg-accent-bg px-3 py-2 text-left font-ui-label text-ui-label text-accent"
-                          : "w-full truncate rounded-md border-l-2 border-transparent px-3 py-2 text-left font-ui-label text-ui-label text-ink-3 transition-colors duration-200 hover:bg-surface-container-high hover:text-ink-2"
-                      }
-                    >
-                      {item}
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        ))}
+        {groups.length === 0 ? (
+          <p className="px-2 font-body-secondary text-body-secondary text-ink-4">
+            Пока нет бесед. Задай первый вопрос — он сохранится здесь.
+          </p>
+        ) : (
+          groups.map((group) => (
+            <div key={group.label} className="mb-6">
+              <h3 className="mb-2 px-2 font-ui-label text-ui-label uppercase tracking-wider text-ink-3">
+                {group.label}
+              </h3>
+              <ul className="space-y-1">
+                {group.items.map((s) => {
+                  const active = s.id === activeId
+                  return (
+                    <li key={s.id}>
+                      <button
+                        onClick={() => onSelect(s.id)}
+                        title={s.title}
+                        className={
+                          active
+                            ? "w-full truncate rounded-r-md border-l-2 border-accent bg-accent-bg px-3 py-2 text-left font-ui-label text-ui-label text-accent"
+                            : "w-full truncate rounded-md border-l-2 border-transparent px-3 py-2 text-left font-ui-label text-ui-label text-ink-3 transition-colors duration-200 hover:bg-surface-container-high hover:text-ink-2"
+                        }
+                      >
+                        {s.title}
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="mt-auto flex items-center justify-between border-t border-border-2 pt-4">
