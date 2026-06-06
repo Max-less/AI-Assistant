@@ -1,0 +1,235 @@
+[
+  {
+    "id": "q01",
+    "question": "Какие роли (подотчётности) есть в Scrum-команде?",
+    "expected_source": "2020-Scrum-Guide-Russian.pdf",
+    "expected_keywords": [
+      ["Владелец продукта", "Product Owner"],
+      ["Scrum-мастер", "Скрам-мастер", "Scrum Master"],
+      ["Разработчики", "Developers", "разработчик"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q02",
+    "question": "Какие события (мероприятия) определены в Scrum?",
+    "expected_source": "2020-Scrum-Guide-Russian.pdf",
+    "expected_keywords": [
+      ["Планирование спринта", "планирования спринта", "Sprint Planning"],
+      ["Ежедневный скрам", "Daily Scrum", "ежедневн"],
+      ["Обзор спринта", "Sprint Review"],
+      ["Ретроспектива", "Retrospective"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q03",
+    "question": "Какие артефакты определены в Scrum?",
+    "expected_source": "2020-Scrum-Guide-Russian.pdf",
+    "expected_keywords": [
+      ["Бэклог продукта", "Product Backlog"],
+      ["Бэклог спринта", "Sprint Backlog"],
+      ["Инкремент", "Increment"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q04",
+    "question": "Что такое спринт и какова его максимальная продолжительность?",
+    "expected_source": "2020-Scrum-Guide-Russian.pdf",
+    "expected_keywords": [
+      ["спринт", "Sprint"],
+      ["месяц"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q05",
+    "question": "Что такое «Определение готовности» (Definition of Done) в Scrum?",
+    "expected_source": "2020-Scrum-Guide-Russian.pdf",
+    "expected_keywords": [
+      ["Определение готовности", "Definition of Done", "критери"],
+      ["инкремент", "Increment"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q06",
+    "question": "Каковы пять ценностей Scrum?",
+    "expected_source": "2020-Scrum-Guide-Russian.pdf",
+    "expected_keywords": [
+      ["Приверженность", "обязательств", "Commitment"],
+      ["Уважение", "Respect"],
+      ["Смелость", "Courage"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q07",
+    "question": "За что отвечает Scrum-мастер?",
+    "expected_source": "2020-Scrum-Guide-Russian.pdf",
+    "expected_keywords": [
+      ["Scrum-мастер", "Scrum Master", "Скрам-мастер"],
+      ["команд"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q08",
+    "question": "За что отвечает Владелец продукта?",
+    "expected_source": "2020-Scrum-Guide-Russian.pdf",
+    "expected_keywords": [
+      ["Владелец продукта", "Product Owner"],
+      ["Бэклог продукта", "Product Backlog", "бэклог"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q09",
+    "question": "Какие разделы должно содержать техническое задание по ГОСТ 19.201-78?",
+    "expected_source": "19.201-78.pdf",
+    "expected_keywords": [
+      ["введение"],
+      ["основания для разработки", "основани"],
+      ["назначение"],
+      ["стадии и этапы", "стадии"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q10",
+    "question": "Что указывают в разделе «Назначение разработки» технического задания?",
+    "expected_source": "19.201-78.pdf",
+    "expected_keywords": [
+      ["функциональное", "функционал"],
+      ["назначение"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q11",
+    "question": "Какие подразделы входят в раздел «Требования к программе» технического задания?",
+    "expected_source": "19.201-78.pdf",
+    "expected_keywords": [
+      ["надежности", "надёжности", "надежность"],
+      ["условия эксплуатации", "эксплуатаци"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q12",
+    "question": "Что такое стори-поинты (пункты историй) при оценке в Agile?",
+    "expected_source": "agile-ocenka-i-planirovanie-proektov-53886.pdf",
+    "expected_keywords": [
+      ["пункт", "story point", "стори-поинт"],
+      ["истори"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q13",
+    "question": "Что такое «идеальные дни» в Agile-оценке трудоёмкости?",
+    "expected_source": "agile-ocenka-i-planirovanie-proektov-53886.pdf",
+    "expected_keywords": [
+      ["идеальные дни", "идеальных дн", "идеальн"],
+      ["оценк"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q14",
+    "question": "Что такое покер планирования (planning poker)?",
+    "expected_source": "agile-ocenka-i-planirovanie-proektov-53886.pdf",
+    "expected_keywords": [
+      ["покер планирования", "planning poker", "покер"],
+      ["оценк"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q15",
+    "question": "Что такое DevOps?",
+    "expected_source": ["new_DevOps_read_stamped.pdf", "практик DevOps.pdf"],
+    "expected_keywords": [
+      ["DevOps"],
+      ["автоматизац", "automation"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q16",
+    "question": "Что такое CI/CD — непрерывная интеграция и непрерывная поставка?",
+    "expected_source": "new_DevOps_read_stamped.pdf",
+    "expected_keywords": [
+      ["непрерывная интеграция", "непрерывн", "Continuous Integration"],
+      ["непрерывная поставка", "непрерывная доставка", "Continuous Delivery", "Continuous Deployment"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q17",
+    "question": "Какую роль играет автоматизация в подходе DevOps?",
+    "expected_source": ["new_DevOps_read_stamped.pdf", "практик DevOps.pdf"],
+    "expected_keywords": [
+      ["автоматизац", "automation"],
+      ["DevOps"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q18",
+    "question": "Что такое жизненный цикл проекта?",
+    "expected_source": ["978-5-7996-1416-4.pdf", "УП_Трофимов_2019.pdf", "Upravlenie proektami - Uchebnoe posobie - 2008.pdf"],
+    "expected_keywords": [
+      ["жизненный цикл"],
+      ["проект"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q19",
+    "question": "Что такое критический путь в управлении проектами?",
+    "expected_source": ["978-5-7996-1416-4.pdf", "УП_Трофимов_2019.pdf", "Upravlenie proektami - Uchebnoe posobie - 2008.pdf"],
+    "expected_keywords": [
+      ["критический путь", "critical path"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q20",
+    "question": "Что такое устав проекта и зачем он нужен?",
+    "expected_source": ["978-5-7996-1416-4.pdf", "УП_Трофимов_2019.pdf", "Upravlenie proektami - Uchebnoe posobie - 2008.pdf"],
+    "expected_keywords": [
+      ["устав проекта", "устав"]
+    ],
+    "in_base": true
+  },
+  {
+    "id": "q21",
+    "question": "Какая столица у Австралии?",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
+  },
+  {
+    "id": "q22",
+    "question": "Как приготовить классический борщ?",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
+  },
+  {
+    "id": "q23",
+    "question": "Кто написал роман «Война и мир»?",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
+  },
+  {
+    "id": "q24",
+    "question": "Сколько планет в Солнечной системе?",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
+  }
+]

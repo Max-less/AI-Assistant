@@ -37,10 +37,23 @@ def test_pipeline_returns_canned_answer_when_no_chunks():
 
 def test_pipeline_calls_llm_when_chunks_present():
     chunk = Chunk(text="контент", source="doc.md", chunk_id="doc.md::0")
-    llm = FakeLLM(response="ответ")
+    llm = FakeLLM(response="ответ [1]")  # cite the source so it survives _filter_cited
     pipeline = RAGPipeline(FakeRetriever([chunk]), llm)
     result = pipeline.answer("вопрос")
 
-    assert result["answer"] == "ответ"
+    assert result["answer"] == "ответ [1]"
     assert result["sources"] == ["doc.md"]
+    assert llm.calls == 1
+
+
+def test_pipeline_drops_uncited_sources():
+    # _filter_cited keeps only sources actually cited as [N]; an answer with no
+    # citation yields an empty sources list (the answer text is returned as-is).
+    chunk = Chunk(text="контент", source="doc.md", chunk_id="doc.md::0")
+    llm = FakeLLM(response="ответ без ссылки")
+    pipeline = RAGPipeline(FakeRetriever([chunk]), llm)
+    result = pipeline.answer("вопрос")
+
+    assert result["answer"] == "ответ без ссылки"
+    assert result["sources"] == []
     assert llm.calls == 1

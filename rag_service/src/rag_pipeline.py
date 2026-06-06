@@ -60,11 +60,13 @@ class RAGPipeline:
         llm: LLMClient,
         dialog_manager: DialogManager | None = None,
         top_k: int = 8,
+        system_prompt: str | None = None,
     ):
         self.retriever = retriever
         self.llm = llm
         self.dialog_manager = dialog_manager
         self.top_k = top_k
+        self.system_prompt = system_prompt
 
     def answer(
         self,
@@ -96,7 +98,9 @@ class RAGPipeline:
                 },
             }
 
-        messages = build_messages(question, chunks, history=history)
+        messages = build_messages(
+            question, chunks, history=history, system_prompt=self.system_prompt
+        )
         t = time.perf_counter()
         answer = self.llm.complete(messages)
         llm_ms = int((time.perf_counter() - t) * 1000)
