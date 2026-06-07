@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .db import Base, engine
 from .rag_client import RagClient
-from .routes import chat, feedback, health, history
+from .routes import auth, chat, feedback, health, history
 
 
 def _cors_origins() -> list[str]:
@@ -41,6 +41,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router, prefix="/api", tags=["auth"])
 app.include_router(chat.router, prefix="/api", tags=["chat"])
 app.include_router(history.router, prefix="/api", tags=["history"])
 app.include_router(feedback.router, prefix="/api", tags=["feedback"])

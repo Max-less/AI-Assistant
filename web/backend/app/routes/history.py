@@ -7,17 +7,21 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..db import get_db
-from ..models import ChatSession, Message
+from ..deps import get_current_user
+from ..models import ChatSession, Message, User
 from ..schemas import HistoryResponse, MessageOut, SessionDetail, SessionSummary
 
 router = APIRouter()
 
 
 @router.get("/sessions", response_model=list[SessionSummary])
-def list_sessions(db: Session = Depends(get_db)) -> list[SessionSummary]:
+def list_sessions(
+    db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> list[SessionSummary]:
     rows = db.execute(
         select(ChatSession, func.count(Message.id))
         .outerjoin(Message, Message.session_id == ChatSession.id)
+        .where(ChatSession.user_id == user.id)
         .group_by(ChatSession.id)
         .order_by(ChatSession.created_at.desc(), ChatSession.id.desc())
     ).all()
@@ -34,9 +38,13 @@ def list_sessions(db: Session = Depends(get_db)) -> list[SessionSummary]:
 
 
 @router.get("/history/{session_id}", response_model=HistoryResponse)
-def get_history(session_id: int, db: Session = Depends(get_db)) -> HistoryResponse:
+def get_history(
+    session_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> HistoryResponse:
     session = db.get(ChatSession, session_id)
-    if session is None:
+    if session is None or session.user_id != user.id:
         raise HTTPException(status_code=404, detail="Session not found")
 
     messages = [

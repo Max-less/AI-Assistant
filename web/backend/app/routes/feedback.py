@@ -4,16 +4,21 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..db import get_db
-from ..models import Feedback, Message
+from ..deps import get_current_user
+from ..models import Feedback, Message, User
 from ..schemas import FeedbackRequest, FeedbackResponse
 
 router = APIRouter()
 
 
 @router.post("/feedback", response_model=FeedbackResponse)
-def post_feedback(req: FeedbackRequest, db: Session = Depends(get_db)) -> FeedbackResponse:
+def post_feedback(
+    req: FeedbackRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> FeedbackResponse:
     message = db.get(Message, req.message_id)
-    if message is None:
+    if message is None or message.session.user_id != user.id:
         raise HTTPException(status_code=404, detail="Message not found")
     if message.role != "assistant":
         raise HTTPException(status_code=400, detail="Feedback only applies to assistant messages")
