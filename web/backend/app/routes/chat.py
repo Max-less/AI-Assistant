@@ -3,14 +3,20 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from ..config import GUEST_QUERY_LIMIT
 from ..db import get_db
-from ..models import ChatSession, Message
+from ..deps import get_current_user
+from ..models import ChatSession, Message, User
 from ..rag_client import RagClient, RagError
 from ..schemas import ChatRequest, ChatResponse, MessageOut
+from ..services import count_user_queries
 
 router = APIRouter()
 
-HISTORY_TURNS = 6
+# Recent turns sent to the RAG service for context. Kept small: query
+# reformulation already makes follow-ups standalone, so a wide window mostly
+# burns tokens. 4 = the last two Q&A pairs.
+HISTORY_TURNS = 4
 
 
 def _title_from(question: str) -> str:
@@ -19,12 +25,29 @@ def _title_from(question: str) -> str:
 
 
 @router.post("/chat", response_model=ChatResponse)
-def post_chat(req: ChatRequest, request: Request, db: Session = Depends(get_db)) -> ChatResponse:
+def post_chat(
+    req: ChatRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> ChatResponse:
     rag: RagClient = request.app.state.rag
 
+    # Guests may only send a limited number of queries.
+    if user.is_guest and count_user_queries(db, user.id) >= GUEST_QUERY_LIMIT:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Гостевой лимит ({GUEST_QUERY_LIMIT} запросов) исчерпан. "
+                "Зарегистрируйтесь, чтобы продолжить."
+            ),
+        )
+
     session = db.get(ChatSession, req.session_id) if req.session_id is not None else None
+    if session is not None and session.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Session not found")
     if session is None:
-        session = ChatSession(title=_title_from(req.question))
+        session = ChatSession(user_id=user.id, title=_title_from(req.question))
         db.add(session)
         db.flush()
 

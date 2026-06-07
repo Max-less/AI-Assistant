@@ -231,5 +231,75 @@
     "expected_source": null,
     "expected_keywords": [],
     "in_base": false
+  },
+  {
+    "id": "q25",
+    "question": "Как центрировать блок div по центру страницы в CSS?",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
+  },
+  {
+    "id": "q26",
+    "question": "Что такое бинарное дерево поиска и какова сложность поиска в нём?",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
+  },
+  {
+    "id": "q27",
+    "question": "Как написать SQL-запрос с JOIN для объединения двух таблиц?",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
+  },
+  {
+    "id": "q28",
+    "question": "Что такое машинное обучение и нейронные сети?",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
+  },
+  {
+    "id": "q29",
+    "question": "Как установить Python и настроить виртуальное окружение?",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
+  },
+  {
+    "id": "q30",
+    "question": "В чём разница между списком и кортежем в Python?",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
+  },
+  {
+    "id": "q31",
+    "question": "Какая завтра погода в Москве?",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
+  },
+  {
+    "id": "q32",
+    "question": "Кто выиграл чемпионат мира по футболу в 2018 году?",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
+  },
+  {
+    "id": "q33",
+    "question": "Что такое фотосинтез?",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
+  },
+  {
+    "id": "q34",
+    "question": "Посоветуй несколько хороших фильмов на вечер.",
+    "expected_source": null,
+    "expected_keywords": [],
+    "in_base": false
   }
 ]

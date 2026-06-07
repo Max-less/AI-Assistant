@@ -109,7 +109,8 @@ async def lifespan(app: FastAPI):
     app.state.default_top_k = int(os.getenv("RAG_TOP_K", "5"))
     app.state.rerank_pool = int(os.getenv("RAG_RERANK_POOL", "10"))
     app.state.alpha = float(os.getenv("BM25_ALPHA", "0.5"))
-    app.state.score_threshold = float(os.getenv("RAG_SCORE_THRESHOLD", "0.5"))
+    app.state.score_threshold = float(os.getenv("RAG_SCORE_THRESHOLD", "0.78"))
+    app.state.answer_max_tokens = int(os.getenv("GIGACHAT_MAX_TOKENS", "1024"))
     app.state.chunk_count = len(store.chunks)
 
     yield
@@ -153,6 +154,7 @@ def ask(req: AskRequest, request: Request) -> AskResponse:
         s.llm,
         dialog_manager=s.dialog_manager,
         top_k=s.default_top_k,
+        answer_max_tokens=s.answer_max_tokens,
     )
 
     history_dicts = (
