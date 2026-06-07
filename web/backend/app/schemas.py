@@ -3,7 +3,39 @@
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
+
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    name: str = Field(..., min_length=1, max_length=120)
+    password: str = Field(..., min_length=6, max_length=72)
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=1)
+
+
+class GuestRequest(BaseModel):
+    # Stable browser-generated id so the same device reuses its guest account.
+    client_id: str | None = Field(default=None, max_length=64)
+
+
+class UserOut(BaseModel):
+    id: int
+    email: EmailStr | None = None
+    name: str | None = None
+    is_guest: bool
+    created_at: datetime
+    # Remaining guest quota; None for registered users.
+    guest_remaining: int | None = None
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: Literal["bearer"] = "bearer"
+    user: UserOut
 
 
 class ChatRequest(BaseModel):

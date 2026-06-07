@@ -14,9 +14,10 @@ services:
       RAG_TOP_K: "5"
       RAG_RERANK_POOL: "10"
       BM25_ALPHA: "0.5"
-      RAG_SCORE_THRESHOLD: "0.5"
+      RAG_SCORE_THRESHOLD: "0.78"  # conservative gate: below the weakest real short question (~0.79), only blatant off-topic is gated; prompt-refusal is the real backstop. See scripts/cosine_probe.py
       GIGACHAT_TIMEOUT: "20"
       GIGACHAT_MAX_RETRIES: "2"
+      GIGACHAT_MAX_TOKENS: "1024"  # cap answer length; lower to save more output tokens
       HF_HOME: /root/.cache/huggingface
     volumes:
       - ./rag_service/data:/app/rag_service/data:ro
@@ -37,11 +38,16 @@ services:
       context: .
       dockerfile: web/backend/Dockerfile
     container_name: web_backend
+    env_file:
+      - web/backend/.env
     environment:
       RAG_SERVICE_URL: http://rag_service:8000
       RAG_TIMEOUT: "60"
       DATABASE_URL: sqlite:////data/web.db
       WEB_CORS_ORIGINS: http://localhost:5173,http://localhost:8080
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRE_MINUTES: "10080"
+      GUEST_QUERY_LIMIT: "5"
     volumes:
       - web_db:/data
     depends_on:
