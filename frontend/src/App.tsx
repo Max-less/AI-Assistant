@@ -40,7 +40,7 @@ function fromServerMessage(m: MessageOut): ChatMessage {
   }
 }
 
-export default function App() {
+export default function App({ onLogout }: { onLogout?: () => void } = {}) {
   const [sessionId, setSessionId] = useState<number | null>(null)
   const [sessionTitle, setSessionTitle] = useState<string | null>(null)
   const [sessions, setSessions] = useState<SessionSummary[]>([])
@@ -175,6 +175,7 @@ export default function App() {
         activeId={sessionId}
         onSelect={handleSelectSession}
         onNewChat={handleNewChat}
+        onLogout={onLogout}
       />
       <main className="relative flex h-screen flex-1 flex-col bg-bg-tint md:ml-[280px]">
         <TopBar title={sessionTitle ?? "Новая беседа"} />

@@ -7,6 +7,7 @@ interface SidebarProps {
   activeId: number | null
   onSelect: (id: number) => void
   onNewChat: () => void
+  onLogout?: () => void
 }
 
 interface SessionGroup {
@@ -43,7 +44,7 @@ function groupSessions(sessions: SessionSummary[]): SessionGroup[] {
   ].filter((g) => g.items.length > 0)
 }
 
-export function Sidebar({ sessions, activeId, onSelect, onNewChat }: SidebarProps) {
+export function Sidebar({ sessions, activeId, onSelect, onNewChat, onLogout }: SidebarProps) {
   const groups = useMemo(() => groupSessions(sessions), [sessions])
 
   return (
@@ -106,8 +107,12 @@ export function Sidebar({ sessions, activeId, onSelect, onNewChat }: SidebarProp
             <span className="font-mono-label-xs text-mono-label-xs text-ink-4">РТФ, 4 курс</span>
           </div>
         </div>
-        <button className="rounded-md p-1.5 text-ink-3 transition-colors hover:bg-surface-container-high hover:text-ink">
-          <span className="material-symbols-outlined text-[18px]">settings</span>
+        <button
+          onClick={onLogout}
+          title="Выйти"
+          className="rounded-md p-1.5 text-ink-3 transition-colors hover:bg-surface-container-high hover:text-ink"
+        >
+          <span className="material-symbols-outlined text-[18px]">logout</span>
         </button>
       </div>
     </nav>
