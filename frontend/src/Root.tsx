@@ -1,21 +1,21 @@
 import { useState } from "react"
 import App from "./App"
 import { AuthPage } from "@/components/AuthPage"
-import { clearAuth, getAuth } from "@/lib/auth"
+import { clearAuth, getSession, type AuthUser } from "@/lib/auth"
 
 // Top-level gate: show the login/register screen until the user authenticates
-// (or continues as guest). No router — just a localStorage-backed flag.
+// (or continues as guest). No router — just a localStorage-backed token.
 export default function Root() {
-  const [authed, setAuthed] = useState(() => getAuth() !== null)
+  const [user, setUser] = useState<AuthUser | null>(() => getSession()?.user ?? null)
 
   function handleLogout() {
     clearAuth()
-    setAuthed(false)
+    setUser(null)
   }
 
-  if (!authed) {
-    return <AuthPage onAuthed={() => setAuthed(true)} />
+  if (!user) {
+    return <AuthPage onAuthed={setUser} />
   }
 
-  return <App onLogout={handleLogout} />
+  return <App user={user} onLogout={handleLogout} onUserChange={setUser} />
 }

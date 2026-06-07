@@ -2,10 +2,11 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { setAuth, type AuthMode } from "@/lib/auth"
+import { getOrCreateGuestId, setSession, type AuthUser } from "@/lib/auth"
+import { login, loginAsGuest, register } from "@/lib/api"
 
 interface AuthPageProps {
-  onAuthed: (mode: AuthMode) => void
+  onAuthed: (user: AuthUser) => void
 }
 
 type Tab = "login" | "register"
@@ -49,6 +50,7 @@ export function AuthPage({ onAuthed }: AuthPageProps) {
   const [password, setPassword] = useState("")
   const [confirm, setConfirm] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const isRegister = tab === "register"
 
@@ -57,9 +59,10 @@ export function AuthPage({ onAuthed }: AuthPageProps) {
     setError(null)
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    // Lightweight client-side validation only — there is no backend yet.
+    if (loading) return
+    // Client-side validation before hitting the server.
     if (isRegister && !name.trim()) {
       setError("Введите имя")
       return
@@ -76,13 +79,35 @@ export function AuthPage({ onAuthed }: AuthPageProps) {
       setError("Пароли не совпадают")
       return
     }
-    setAuth("user")
-    onAuthed("user")
+
+    setError(null)
+    setLoading(true)
+    try {
+      const res = isRegister
+        ? await register(email.trim(), name.trim(), password)
+        : await login(email.trim(), password)
+      setSession(res.access_token, res.user)
+      onAuthed(res.user)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось выполнить вход")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  function handleGuest() {
-    setAuth("guest")
-    onAuthed("guest")
+  async function handleGuest() {
+    if (loading) return
+    setError(null)
+    setLoading(true)
+    try {
+      const res = await loginAsGuest(getOrCreateGuestId())
+      setSession(res.access_token, res.user)
+      onAuthed(res.user)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось войти как гость")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -215,8 +240,8 @@ export function AuthPage({ onAuthed }: AuthPageProps) {
                 </p>
               )}
 
-              <Button type="submit" className="w-full">
-                {isRegister ? "Создать аккаунт" : "Войти"}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Подождите…" : isRegister ? "Создать аккаунт" : "Войти"}
               </Button>
             </form>
 
@@ -229,7 +254,7 @@ export function AuthPage({ onAuthed }: AuthPageProps) {
               <div className="h-px flex-1 bg-border" />
             </div>
 
-            <Button variant="ghost" className="w-full" onClick={handleGuest}>
+            <Button variant="ghost" className="w-full" onClick={handleGuest} disabled={loading}>
               <span className="material-symbols-outlined text-[18px]">person_outline</span>
               Продолжить как гость
             </Button>

@@ -1,7 +1,16 @@
 import { API_BASE } from "./config"
+import { clearAuth, getToken, type AuthUser } from "./auth"
 
 export type Role = "user" | "assistant"
 export type FeedbackValue = -1 | 0 | 1
+
+export type { AuthUser }
+
+export interface TokenResponse {
+  access_token: string
+  token_type: "bearer"
+  user: AuthUser
+}
 
 export interface MessageOut {
   id: number
@@ -49,14 +58,22 @@ export interface HealthResponse {
 }
 
 async function jsonRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = getToken()
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.headers ?? {}),
     },
   })
   if (!res.ok) {
+    // An expired/invalid token on a protected route — drop it and return to login.
+    // Auth endpoints themselves use 401 for "wrong password", so skip them.
+    if (res.status === 401 && token && !path.startsWith("/api/auth/")) {
+      clearAuth()
+      window.location.reload()
+    }
     let detail = `HTTP ${res.status}`
     try {
       const body = await res.json()
@@ -67,6 +84,31 @@ async function jsonRequest<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(detail)
   }
   return (await res.json()) as T
+}
+
+export function register(email: string, name: string, password: string): Promise<TokenResponse> {
+  return jsonRequest<TokenResponse>("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify({ email, name, password }),
+  })
+}
+
+export function login(email: string, password: string): Promise<TokenResponse> {
+  return jsonRequest<TokenResponse>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  })
+}
+
+export function loginAsGuest(clientId: string): Promise<TokenResponse> {
+  return jsonRequest<TokenResponse>("/api/auth/guest", {
+    method: "POST",
+    body: JSON.stringify({ client_id: clientId }),
+  })
+}
+
+export function getMe(): Promise<AuthUser> {
+  return jsonRequest<AuthUser>("/api/auth/me")
 }
 
 export function postChat(question: string, sessionId: number | null): Promise<ChatResponse> {

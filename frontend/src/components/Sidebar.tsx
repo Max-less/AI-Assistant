@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import type { SessionSummary } from "@/lib/api"
+import type { AuthUser } from "@/lib/auth"
 
 interface SidebarProps {
   sessions: SessionSummary[]
@@ -8,6 +9,7 @@ interface SidebarProps {
   onSelect: (id: number) => void
   onNewChat: () => void
   onLogout?: () => void
+  user: AuthUser
 }
 
 interface SessionGroup {
@@ -44,8 +46,13 @@ function groupSessions(sessions: SessionSummary[]): SessionGroup[] {
   ].filter((g) => g.items.length > 0)
 }
 
-export function Sidebar({ sessions, activeId, onSelect, onNewChat, onLogout }: SidebarProps) {
+export function Sidebar({ sessions, activeId, onSelect, onNewChat, onLogout, user }: SidebarProps) {
   const groups = useMemo(() => groupSessions(sessions), [sessions])
+
+  const primaryName = user.is_guest ? "Гость" : user.name || user.email || "Аккаунт"
+  const secondaryLine = user.is_guest
+    ? `Осталось ${user.guest_remaining ?? 0} запросов`
+    : user.email || "Зарегистрирован"
 
   return (
     <nav className="z-20 hidden h-screen w-[280px] flex-col border-r border-border-2 bg-surface-container-low p-4 md:fixed md:left-0 md:top-0 md:flex">
@@ -100,11 +107,13 @@ export function Sidebar({ sessions, activeId, onSelect, onNewChat, onLogout }: S
       <div className="mt-auto flex items-center justify-between border-t border-border-2 pt-4">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-hairline bg-surface-container-high">
-            <span className="material-symbols-outlined text-[18px] text-ink-3">person</span>
+            <span className="material-symbols-outlined text-[18px] text-ink-3">
+              {user.is_guest ? "person_outline" : "person"}
+            </span>
           </div>
           <div className="flex flex-col">
-            <span className="font-ui-label text-ui-label text-ink">Иван Студент</span>
-            <span className="font-mono-label-xs text-mono-label-xs text-ink-4">РТФ, 4 курс</span>
+            <span className="font-ui-label text-ui-label text-ink">{primaryName}</span>
+            <span className="font-mono-label-xs text-mono-label-xs text-ink-4">{secondaryLine}</span>
           </div>
         </div>
         <button

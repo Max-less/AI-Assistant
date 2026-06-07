@@ -8,10 +8,12 @@ import {
   type MessageOut,
   type SessionSummary,
   getHistory,
+  getMe,
   getSessions,
   postChat,
   postFeedback,
 } from "@/lib/api"
+import { getSession, setSession, type AuthUser } from "@/lib/auth"
 import type { ChatMessage } from "@/types"
 
 const SESSION_STORAGE_KEY = "svod.lastSessionId"
@@ -40,7 +42,15 @@ function fromServerMessage(m: MessageOut): ChatMessage {
   }
 }
 
-export default function App({ onLogout }: { onLogout?: () => void } = {}) {
+export default function App({
+  user,
+  onLogout,
+  onUserChange,
+}: {
+  user: AuthUser
+  onLogout?: () => void
+  onUserChange?: (user: AuthUser) => void
+}) {
   const [sessionId, setSessionId] = useState<number | null>(null)
   const [sessionTitle, setSessionTitle] = useState<string | null>(null)
   const [sessions, setSessions] = useState<SessionSummary[]>([])
@@ -135,9 +145,20 @@ export default function App({ onLogout }: { onLogout?: () => void } = {}) {
         ])
       } finally {
         setLoading(false)
+        // Keep the guest quota indicator fresh (it changes per query).
+        if (user.is_guest) {
+          try {
+            const me = await getMe()
+            onUserChange?.(me)
+            const s = getSession()
+            if (s) setSession(s.token, me)
+          } catch {
+            /* ignore */
+          }
+        }
       }
     },
-    [refreshSessions, sessionId],
+    [refreshSessions, sessionId, user.is_guest, onUserChange],
   )
 
   const handleFeedback = useCallback(
@@ -176,6 +197,7 @@ export default function App({ onLogout }: { onLogout?: () => void } = {}) {
         onSelect={handleSelectSession}
         onNewChat={handleNewChat}
         onLogout={onLogout}
+        user={user}
       />
       <main className="relative flex h-screen flex-1 flex-col bg-bg-tint md:ml-[280px]">
         <TopBar title={sessionTitle ?? "Новая беседа"} />
