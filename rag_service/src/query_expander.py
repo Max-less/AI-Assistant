@@ -25,6 +25,9 @@ _CONNECTIVE_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Sub-queries are short by nature — cap the output to avoid the model elaborating.
+_EXPAND_MAX_TOKENS = 128
+
 
 def _looks_single_topic(question: str) -> bool:
     """Cheap heuristic: short question without obvious conjunction markers
@@ -49,7 +52,7 @@ class QueryExpander:
         ]
 
         try:
-            raw = self.llm.complete(messages)
+            raw = self.llm.complete(messages, max_tokens=_EXPAND_MAX_TOKENS)
         except Exception:
             return [question]
 

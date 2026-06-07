@@ -61,12 +61,14 @@ class RAGPipeline:
         dialog_manager: DialogManager | None = None,
         top_k: int = 8,
         system_prompt: str | None = None,
+        answer_max_tokens: int | None = None,
     ):
         self.retriever = retriever
         self.llm = llm
         self.dialog_manager = dialog_manager
         self.top_k = top_k
         self.system_prompt = system_prompt
+        self.answer_max_tokens = answer_max_tokens
 
     def answer(
         self,
@@ -102,7 +104,7 @@ class RAGPipeline:
             question, chunks, history=history, system_prompt=self.system_prompt
         )
         t = time.perf_counter()
-        answer = self.llm.complete(messages)
+        answer = self.llm.complete(messages, max_tokens=self.answer_max_tokens)
         llm_ms = int((time.perf_counter() - t) * 1000)
 
         answer, cited_sources = _filter_cited(answer, chunks)

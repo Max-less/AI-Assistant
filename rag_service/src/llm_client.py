@@ -31,11 +31,13 @@ class LLMClient:
             timeout=self.timeout,
         )
 
-    def complete(self, messages: list[dict]) -> str:
+    def complete(self, messages: list[dict], max_tokens: int | None = None) -> str:
         """
         Send messages to GigaChat and return the response text.
 
         messages: [{"role": "user"|"assistant"|"system", "content": "..."}]
+        max_tokens: optional cap on the generated answer length (saves output
+        tokens; keep generous for answers, small for short auxiliary calls).
         Retries with exponential backoff (1s, 2s, 4s, ...).
         """
         giga_messages = [
@@ -43,6 +45,8 @@ class LLMClient:
             for m in messages
         ]
         payload = Chat(messages=giga_messages)
+        if max_tokens is not None:
+            payload.max_tokens = max_tokens
 
         last_exception = None
 

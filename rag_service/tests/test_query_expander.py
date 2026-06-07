@@ -13,7 +13,7 @@ class RecordingLLM:
         self.response = response
         self.calls = 0
 
-    def complete(self, messages):
+    def complete(self, messages, max_tokens=None):
         self.calls += 1
         return self.response
 
@@ -50,7 +50,7 @@ def test_llm_failure_falls_back_to_original():
     """If the LLM raises on a multi-topic question, expander returns [question]."""
 
     class FailingLLM:
-        def complete(self, messages):
+        def complete(self, messages, max_tokens=None):
             raise RuntimeError("boom")
 
     expander = QueryExpander(FailingLLM())

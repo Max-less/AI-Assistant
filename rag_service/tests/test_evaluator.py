@@ -40,7 +40,7 @@ class FakeJudge:
         self.replies = replies
         self.calls = 0
 
-    def complete(self, messages):
+    def complete(self, messages, max_tokens=None):
         self.calls += 1
         if isinstance(self.replies, str):
             return self.replies

@@ -343,7 +343,8 @@ def eval_faithfulness_llm(questions, pipeline, judge_llm=None, runs=None) -> dic
                                  "judged": False, "note": "refusal_or_no_context"})
             continue
 
-        raw = judge.complete(_build_judge_messages(context, answer))
+        # The judge only needs to emit a single 0/1 digit.
+        raw = judge.complete(_build_judge_messages(context, answer), max_tokens=4)
         verdict = _parse_verdict(raw)
         faithful = 1 if verdict == 1 else 0  # unparseable -> conservative 0
         verdicts.append(float(faithful))

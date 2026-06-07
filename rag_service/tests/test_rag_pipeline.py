@@ -20,7 +20,7 @@ class FakeLLM:
         self.response = response
         self.calls = 0
 
-    def complete(self, messages):
+    def complete(self, messages, max_tokens=None):
         self.calls += 1
         return self.response
 
