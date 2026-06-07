@@ -14,6 +14,9 @@ web/backend/.venv
 **/__pycache__
 **/*.pyc
 
+# Secrets (provided at runtime via env_file, never baked into images)
+**/.env
+
 # Local DB / logs
 *.db
 uvicorn.err
