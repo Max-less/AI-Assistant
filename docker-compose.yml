@@ -49,7 +49,11 @@ services:
       JWT_EXPIRE_MINUTES: "10080"
       GUEST_QUERY_LIMIT: "5"
     volumes:
-      - ./web/backend/data:/data
+      # Named volume keeps the SQLite file on the Linux VM filesystem, where its
+      # file locks work. A Windows host bind mount cannot hold SQLite's locks and
+      # corrupts the DB on write ("disk I/O error"). To grab a host copy on demand:
+      #   docker compose cp web_backend:/data/web.db ./web/backend/data/web.db
+      - web_db:/data
     depends_on:
       rag_service:
         condition: service_healthy
@@ -68,3 +72,4 @@ services:
 
 volumes:
   hf_cache:
+  web_db:
