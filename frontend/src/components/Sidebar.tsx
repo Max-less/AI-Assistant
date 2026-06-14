@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import type { SessionSummary } from "@/lib/api"
 import type { AuthUser } from "@/lib/auth"
@@ -8,6 +8,7 @@ interface SidebarProps {
   activeId: number | null
   onSelect: (id: number) => void
   onNewChat: () => void
+  onDelete: (id: number) => void | Promise<void>
   onLogout?: () => void
   user: AuthUser
 }
@@ -46,8 +47,30 @@ function groupSessions(sessions: SessionSummary[]): SessionGroup[] {
   ].filter((g) => g.items.length > 0)
 }
 
-export function Sidebar({ sessions, activeId, onSelect, onNewChat, onLogout, user }: SidebarProps) {
+export function Sidebar({
+  sessions,
+  activeId,
+  onSelect,
+  onNewChat,
+  onDelete,
+  onLogout,
+  user,
+}: SidebarProps) {
   const groups = useMemo(() => groupSessions(sessions), [sessions])
+  // Session pending deletion, awaiting confirmation in the modal.
+  const [pendingDelete, setPendingDelete] = useState<SessionSummary | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  async function confirmDelete() {
+    if (!pendingDelete) return
+    setDeleting(true)
+    try {
+      await onDelete(pendingDelete.id)
+      setPendingDelete(null)
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   const primaryName = user.is_guest ? "Гость" : user.name || user.email || "Аккаунт"
   const secondaryLine = user.is_guest
@@ -55,6 +78,7 @@ export function Sidebar({ sessions, activeId, onSelect, onNewChat, onLogout, use
     : user.email || "Зарегистрирован"
 
   return (
+    <>
     <nav className="z-20 hidden h-screen w-[280px] flex-col border-r border-border-2 bg-surface-container-low p-4 md:fixed md:left-0 md:top-0 md:flex">
       <div className="mb-6 flex items-center gap-2 px-2">
         <span className="font-hero-heading text-hero-heading text-primary">Свод</span>
@@ -83,17 +107,28 @@ export function Sidebar({ sessions, activeId, onSelect, onNewChat, onLogout, use
                 {group.items.map((s) => {
                   const active = s.id === activeId
                   return (
-                    <li key={s.id}>
+                    <li key={s.id} className="group/item relative">
                       <button
                         onClick={() => onSelect(s.id)}
                         title={s.title}
                         className={
                           active
-                            ? "w-full truncate rounded-r-md border-l-2 border-accent bg-accent-bg px-3 py-2 text-left font-ui-label text-ui-label text-accent"
-                            : "w-full truncate rounded-md border-l-2 border-transparent px-3 py-2 text-left font-ui-label text-ui-label text-ink-3 transition-colors duration-200 hover:bg-surface-container-high hover:text-ink-2"
+                            ? "w-full truncate rounded-r-md border-l-2 border-accent bg-accent-bg py-2 pl-3 pr-9 text-left font-ui-label text-ui-label text-accent"
+                            : "w-full truncate rounded-md border-l-2 border-transparent py-2 pl-3 pr-9 text-left font-ui-label text-ui-label text-ink-3 transition-colors duration-200 hover:bg-surface-container-high hover:text-ink-2"
                         }
                       >
                         {s.title}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setPendingDelete(s)
+                        }}
+                        title="Удалить беседу"
+                        aria-label="Удалить беседу"
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-ink-4 opacity-0 transition-colors duration-200 hover:bg-surface-container-high hover:text-error focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent group-hover/item:opacity-100"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
                       </button>
                     </li>
                   )
@@ -125,5 +160,52 @@ export function Sidebar({ sessions, activeId, onSelect, onNewChat, onLogout, use
         </button>
       </div>
     </nav>
+
+    {pendingDelete && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+        onClick={() => !deleting && setPendingDelete(null)}
+      >
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="delete-dialog-title"
+          className="w-full max-w-sm rounded-xl border border-hairline bg-surface p-6 shadow-lg"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="mb-4 flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-error-container">
+              <span className="material-symbols-outlined text-[20px] text-error">delete</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <h2 id="delete-dialog-title" className="font-ui-label text-ui-label text-ink">
+                Удалить беседу?
+              </h2>
+              <p className="font-body-secondary text-body-secondary text-ink-3">
+                «{pendingDelete.title}» и все её сообщения будут удалены без возможности
+                восстановления.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setPendingDelete(null)}
+              disabled={deleting}
+            >
+              Отмена
+            </Button>
+            <Button
+              onClick={confirmDelete}
+              disabled={deleting}
+              className="bg-error text-on-error shadow-sm hover:bg-error/90"
+            >
+              {deleting ? "Удаление…" : "Удалить"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }

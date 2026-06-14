@@ -126,6 +126,28 @@ export function getHistory(sessionId: number): Promise<HistoryResponse> {
   return jsonRequest<HistoryResponse>(`/api/history/${sessionId}`)
 }
 
+export async function deleteSession(sessionId: number): Promise<void> {
+  const token = getToken()
+  const res = await fetch(`${API_BASE}/api/history/${sessionId}`, {
+    method: "DELETE",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) {
+    if (res.status === 401 && token) {
+      clearAuth()
+      window.location.reload()
+    }
+    let detail = `HTTP ${res.status}`
+    try {
+      const body = await res.json()
+      if (body?.detail) detail = String(body.detail)
+    } catch {
+      // 204 has no body, and error bodies may be non-JSON — keep the status line
+    }
+    throw new Error(detail)
+  }
+}
+
 export function postFeedback(messageId: number, value: FeedbackValue): Promise<{ ok: boolean }> {
   return jsonRequest<{ ok: boolean }>("/api/feedback", {
     method: "POST",

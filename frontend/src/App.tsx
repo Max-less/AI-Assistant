@@ -7,6 +7,7 @@ import {
   type FeedbackValue,
   type MessageOut,
   type SessionSummary,
+  deleteSession,
   getHistory,
   getMe,
   getSessions,
@@ -112,6 +113,24 @@ export default function App({
     localStorage.removeItem(SESSION_STORAGE_KEY)
   }, [])
 
+  const handleDeleteSession = useCallback(
+    async (id: number) => {
+      await deleteSession(id)
+      // If the deleted chat is the one on screen, fall back to a blank state.
+      setSessionId((current) => {
+        if (current === id) {
+          setSessionTitle(null)
+          setMessages([])
+          localStorage.removeItem(SESSION_STORAGE_KEY)
+          return null
+        }
+        return current
+      })
+      await refreshSessions()
+    },
+    [refreshSessions],
+  )
+
   const handleSend = useCallback(
     async (text: string) => {
       const wasNewSession = sessionId === null
@@ -196,6 +215,7 @@ export default function App({
         activeId={sessionId}
         onSelect={handleSelectSession}
         onNewChat={handleNewChat}
+        onDelete={handleDeleteSession}
         onLogout={onLogout}
         user={user}
       />
