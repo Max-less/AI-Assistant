@@ -1,8 +1,8 @@
-"""GET /api/sessions and GET /api/history/{session_id}."""
+"""GET /api/sessions, GET/DELETE /api/history/{session_id}."""
 
 from typing import cast
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -67,3 +67,19 @@ def get_history(
         ),
         messages=messages,
     )
+
+
+@router.delete("/history/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_session(
+    session_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> Response:
+    session = db.get(ChatSession, session_id)
+    if session is None or session.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Messages (and their feedback) cascade-delete via the ORM relationship.
+    db.delete(session)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
