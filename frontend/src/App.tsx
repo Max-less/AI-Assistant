@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useState } from "react"
 import { Composer } from "@/components/Composer"
+import { KnowledgeBasePanel } from "@/components/KnowledgeBasePanel"
 import { MessageList } from "@/components/MessageList"
 import { Sidebar } from "@/components/Sidebar"
+import { SourceDrawer } from "@/components/SourceDrawer"
 import { TopBar } from "@/components/TopBar"
 import {
   type FeedbackValue,
   type MessageOut,
   type SessionSummary,
+  type Source,
   deleteSession,
   getHistory,
   getMe,
@@ -58,6 +61,9 @@ export default function App({
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(false)
   const [composerHeight, setComposerHeight] = useState(160)
+  // Right-side panels: a single cited source, and the full knowledge base.
+  const [activeSource, setActiveSource] = useState<Source | null>(null)
+  const [kbOpen, setKbOpen] = useState(false)
 
   const refreshSessions = useCallback(async () => {
     try {
@@ -220,15 +226,22 @@ export default function App({
         user={user}
       />
       <main className="relative flex h-screen flex-1 flex-col bg-bg-tint md:ml-[280px]">
-        <TopBar title={sessionTitle ?? "Новая беседа"} />
+        <TopBar
+          title={sessionTitle ?? "Новая беседа"}
+          onOpenKnowledgeBase={() => setKbOpen(true)}
+        />
         <MessageList
           messages={messages}
           loading={loading}
           onFeedback={handleFeedback}
+          onOpenSource={setActiveSource}
           bottomInset={composerHeight}
         />
         <Composer onSend={handleSend} disabled={loading} onHeightChange={setComposerHeight} />
       </main>
+
+      <SourceDrawer source={activeSource} onClose={() => setActiveSource(null)} />
+      <KnowledgeBasePanel open={kbOpen} onClose={() => setKbOpen(false)} />
     </div>
   )
 }

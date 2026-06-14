@@ -3,16 +3,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import type { Source } from "@/lib/api"
 
-// Show only the file name from the full path the API returns.
-function basename(path: string): string {
-  const parts = path.split(/[\\/]/)
-  return parts[parts.length - 1] || path
+interface SourcesPanelProps {
+  sources: Source[]
+  onOpenSource: (source: Source) => void
 }
 
-// Honest rendering: the API returns only source file paths (no scores or
-// snippets), so we list the file names and nothing we don't actually have.
-export function SourcesPanel({ sources }: { sources: string[] }) {
+// Lists the materials a message cited. Each row opens the source panel on the
+// right with the exact passage and a link to the full PDF.
+export function SourcesPanel({ sources, onOpenSource }: SourcesPanelProps) {
   if (!sources.length) return null
 
   return (
@@ -26,21 +26,24 @@ export function SourcesPanel({ sources }: { sources: string[] }) {
           expand_more
         </span>
       </CollapsibleTrigger>
-      <CollapsibleContent className="flex flex-col gap-3 p-3">
+      <CollapsibleContent className="flex flex-col gap-2 p-3">
         {sources.map((src, i) => (
-          <div
-            key={`${src}-${i}`}
-            className="flex flex-col gap-2 rounded-md border border-hairline bg-surface p-3"
+          <button
+            key={`${src.filename}-${i}`}
+            type="button"
+            onClick={() => onOpenSource(src)}
+            className="flex items-center gap-3 rounded-md border border-hairline bg-surface p-3 text-left transition-colors hover:border-primary/40 hover:bg-surface-container"
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-ui-label text-ui-label font-bold text-ink">
-                [{i + 1}] {basename(src)}
-              </span>
-            </div>
-            <p className="border-l-2 border-hairline pl-3 font-mono-telemetry text-mono-telemetry text-ink-4 break-all">
-              {src}
-            </p>
-          </div>
+            <span className="font-ui-label text-ui-label font-bold text-accent">
+              [{i + 1}]
+            </span>
+            <span className="flex-1 break-all font-body-secondary text-body-secondary text-ink">
+              {src.filename}
+            </span>
+            <span className="material-symbols-outlined text-[16px] text-ink-4">
+              chevron_right
+            </span>
+          </button>
         ))}
       </CollapsibleContent>
     </Collapsible>

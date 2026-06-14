@@ -12,11 +12,18 @@ export interface TokenResponse {
   user: AuthUser
 }
 
+export interface Source {
+  filename: string
+  // The retrieved passage the citation was drawn from. Empty for messages
+  // persisted before snippets were stored.
+  snippet: string
+}
+
 export interface MessageOut {
   id: number
   role: Role
   content: string
-  sources?: string[] | null
+  sources?: Source[] | null
   latency_ms?: number | null
   latency_breakdown?: Record<string, number> | null
   created_at: string
@@ -157,4 +164,18 @@ export function postFeedback(messageId: number, value: FeedbackValue): Promise<{
 
 export function getHealth(): Promise<HealthResponse> {
   return jsonRequest<HealthResponse>("/api/health")
+}
+
+interface DocumentsResponse {
+  documents: string[]
+}
+
+export function getDocuments(): Promise<string[]> {
+  return jsonRequest<DocumentsResponse>("/api/documents").then((r) => r.documents)
+}
+
+// Absolute URL to a knowledge-base PDF, suitable for opening in a new tab.
+// The endpoint is public, so no auth header is needed for plain navigation.
+export function documentUrl(filename: string): string {
+  return `${API_BASE}/api/documents/${encodeURIComponent(filename)}`
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import type { FeedbackValue } from "@/lib/api"
+import type { FeedbackValue, Source } from "@/lib/api"
 import type { ChatMessage } from "@/types"
 import { AssistantMessage } from "./AssistantMessage"
 
@@ -54,10 +54,17 @@ interface MessageListProps {
   messages: ChatMessage[]
   loading: boolean
   onFeedback: (messageId: number, value: FeedbackValue) => void
+  onOpenSource: (source: Source) => void
   bottomInset?: number
 }
 
-export function MessageList({ messages, loading, onFeedback, bottomInset }: MessageListProps) {
+export function MessageList({
+  messages,
+  loading,
+  onFeedback,
+  onOpenSource,
+  bottomInset,
+}: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -77,7 +84,12 @@ export function MessageList({ messages, loading, onFeedback, bottomInset }: Mess
           m.role === "user" ? (
             <UserMessage key={m.id} content={m.content} />
           ) : (
-            <AssistantMessage key={m.id} message={m} onFeedback={onFeedback} />
+            <AssistantMessage
+              key={m.id}
+              message={m}
+              onFeedback={onFeedback}
+              onOpenSource={onOpenSource}
+            />
           ),
         )}
         {loading && <Thinking />}

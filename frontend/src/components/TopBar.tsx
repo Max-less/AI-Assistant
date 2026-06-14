@@ -2,7 +2,13 @@ import { useEffect, useState } from "react"
 import { getHealth, type HealthResponse } from "@/lib/api"
 
 // Top bar — title from current session; status indicator wired to /api/health.
-export function TopBar({ title }: { title: string }) {
+export function TopBar({
+  title,
+  onOpenKnowledgeBase,
+}: {
+  title: string
+  onOpenKnowledgeBase: () => void
+}) {
   const [health, setHealth] = useState<HealthResponse | null>(null)
   const [error, setError] = useState(false)
 
@@ -42,10 +48,13 @@ export function TopBar({ title }: { title: string }) {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <button className="rounded-md p-2 text-ink-3 transition-colors hover:bg-surface-container hover:text-primary">
-          <span className="material-symbols-outlined">history</span>
-        </button>
-        <button className="rounded-md p-2 text-ink-3 transition-colors hover:bg-surface-container hover:text-primary">
+        <button
+          type="button"
+          onClick={onOpenKnowledgeBase}
+          title="База знаний"
+          aria-label="База знаний"
+          className="rounded-md p-2 text-ink-3 transition-colors hover:bg-surface-container hover:text-primary"
+        >
           <span className="material-symbols-outlined">source</span>
         </button>
       </div>

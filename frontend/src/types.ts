@@ -1,3 +1,5 @@
+import type { Source } from "@/lib/api"
+
 export interface ChatMessage {
   id: string
   // Server-assigned id (present for messages persisted by the web backend;
@@ -6,7 +8,7 @@ export interface ChatMessage {
   role: "user" | "assistant"
   content: string
   // assistant-only metadata
-  sources?: string[]
+  sources?: Source[]
   latencyMs?: number
   latencyBreakdown?: Record<string, number>
   feedback?: -1 | 1 | null

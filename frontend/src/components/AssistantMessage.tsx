@@ -1,13 +1,52 @@
+import { Children, type ReactNode, useMemo } from "react"
 import ReactMarkdown, { type Components } from "react-markdown"
 import remarkGfm from "remark-gfm"
-import type { FeedbackValue } from "@/lib/api"
+import type { FeedbackValue, Source } from "@/lib/api"
 import type { ChatMessage } from "@/types"
 import { SourcesPanel } from "./SourcesPanel"
 
+// Replace inline [N] citation markers in text nodes with clickable pills that
+// open the matching source. Non-string children (already-rendered elements like
+// <strong>) are passed through untouched.
+function withCitations(children: ReactNode, onCite: (n: number) => void): ReactNode {
+  return Children.map(children, (child) => {
+    if (typeof child !== "string") return child
+
+    const re = /\[(\d+)\]/g
+    const parts: ReactNode[] = []
+    let last = 0
+    let key = 0
+    let m: RegExpExecArray | null
+    while ((m = re.exec(child)) !== null) {
+      if (m.index > last) parts.push(child.slice(last, m.index))
+      const n = Number(m[1])
+      parts.push(
+        <button
+          key={`cite-${key++}`}
+          type="button"
+          onClick={() => onCite(n)}
+          title="Показать источник"
+          className="mx-0.5 inline-flex items-center rounded bg-accent-bg px-1 align-baseline font-ui-label text-[11px] font-bold text-accent transition-colors hover:bg-accent hover:text-white"
+        >
+          [{n}]
+        </button>,
+      )
+      last = m.index + m[0].length
+    }
+    if (parts.length === 0) return child
+    if (last < child.length) parts.push(child.slice(last))
+    return parts
+  })
+}
+
 // Markdown element styling matched to the Stitch mockup's typography/tables.
-const markdownComponents: Components = {
+// `onCite` makes [N] markers in paragraphs and list items clickable.
+function makeMarkdownComponents(onCite: (n: number) => void): Components {
+  return {
   p: ({ children }) => (
-    <p className="font-body-primary text-body-primary leading-relaxed">{children}</p>
+    <p className="font-body-primary text-body-primary leading-relaxed">
+      {withCitations(children, onCite)}
+    </p>
   ),
   h3: ({ children }) => (
     <h3 className="mb-2 mt-6 font-markdown-h3 text-markdown-h3 text-ink">{children}</h3>
@@ -18,7 +57,9 @@ const markdownComponents: Components = {
   ul: ({ children }) => <ul className="ml-1 list-disc space-y-2 pl-4">{children}</ul>,
   ol: ({ children }) => <ol className="ml-1 list-decimal space-y-2 pl-4">{children}</ol>,
   li: ({ children }) => (
-    <li className="font-body-primary text-body-primary leading-relaxed">{children}</li>
+    <li className="font-body-primary text-body-primary leading-relaxed">
+      {withCitations(children, onCite)}
+    </li>
   ),
   strong: ({ children }) => <strong className="font-semibold text-ink">{children}</strong>,
   a: ({ children, href }) => (
@@ -48,7 +89,10 @@ const markdownComponents: Components = {
   ),
   tr: ({ children }) => <tr className="transition-colors hover:bg-bg">{children}</tr>,
   th: ({ children }) => <th className="border-b border-hairline p-3">{children}</th>,
-  td: ({ children }) => <td className="p-3 text-ink-2 align-top">{children}</td>,
+  td: ({ children }) => (
+    <td className="p-3 text-ink-2 align-top">{withCitations(children, onCite)}</td>
+  ),
+  }
 }
 
 function FeedbackBar({
@@ -120,9 +164,26 @@ function Telemetry({ message }: { message: ChatMessage }) {
 interface AssistantMessageProps {
   message: ChatMessage
   onFeedback: (messageId: number, value: FeedbackValue) => void
+  onOpenSource: (source: Source) => void
 }
 
-export function AssistantMessage({ message, onFeedback }: AssistantMessageProps) {
+export function AssistantMessage({
+  message,
+  onFeedback,
+  onOpenSource,
+}: AssistantMessageProps) {
+  const sources = message.sources ?? []
+
+  // Map an inline [N] marker to its source (1-based) and open the side panel.
+  const markdownComponents = useMemo(
+    () =>
+      makeMarkdownComponents((n) => {
+        const src = sources[n - 1]
+        if (src) onOpenSource(src)
+      }),
+    [sources, onOpenSource],
+  )
+
   return (
     <div className="flex w-full max-w-[95%] flex-col gap-2 self-start md:max-w-[85%]">
       <div className="flex items-center gap-2 px-1">
@@ -158,7 +219,9 @@ export function AssistantMessage({ message, onFeedback }: AssistantMessageProps)
           </div>
         )}
 
-        {!message.error && <SourcesPanel sources={message.sources ?? []} />}
+        {!message.error && (
+          <SourcesPanel sources={sources} onOpenSource={onOpenSource} />
+        )}
         {!message.error && <Telemetry message={message} />}
         {!message.error && <FeedbackBar message={message} onFeedback={onFeedback} />}
       </div>
