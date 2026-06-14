@@ -3,7 +3,12 @@
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+
+def _basename(path: str) -> str:
+    """Filename without directories, normalising both / and \\ separators."""
+    return str(path).replace("\\", "/").rsplit("/", 1)[-1]
 
 
 class RegisterRequest(BaseModel):
@@ -43,15 +48,33 @@ class ChatRequest(BaseModel):
     session_id: int | None = None
 
 
+class Source(BaseModel):
+    filename: str
+    # Empty for messages persisted before snippets were stored (legacy rows).
+    snippet: str = ""
+
+
 class MessageOut(BaseModel):
     id: int
     role: Literal["user", "assistant"]
     content: str
-    sources: list[str] | None = None
+    sources: list[Source] | None = None
     latency_ms: int | None = None
     latency_breakdown: dict[str, Any] | None = None
     created_at: datetime
     feedback: Literal[-1, 1] | None = None
+
+    @field_validator("sources", mode="before")
+    @classmethod
+    def _coerce_sources(cls, v: Any) -> Any:
+        # Legacy rows stored sources as bare path strings; new rows store
+        # {filename, snippet} dicts. Normalise both to the Source shape.
+        if not isinstance(v, list):
+            return v
+        return [
+            {"filename": _basename(item), "snippet": ""} if isinstance(item, str) else item
+            for item in v
+        ]
 
 
 class ChatResponse(BaseModel):
@@ -90,3 +113,7 @@ class HealthResponse(BaseModel):
     web: Literal["ok"] = "ok"
     rag: Literal["ok", "loading", "down"]
     chunk_count: int | None = None
+
+
+class DocumentsResponse(BaseModel):
+    documents: list[str]

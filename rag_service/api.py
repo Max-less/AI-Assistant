@@ -13,6 +13,7 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
@@ -34,6 +35,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 VECTORS_PATH = os.path.join(DATA_DIR, "vectors.npy")
 META_PATH = os.path.join(DATA_DIR, "chunks_meta.json")
 CHUNKS_PATH = os.path.join(DATA_DIR, "chunks.jsonl")
+KNOWLEDGE_BASE_DIR = os.path.join(os.path.dirname(__file__), "knowledge_base")
 
 
 def _env_flag(name: str, default: bool) -> bool:
@@ -56,11 +58,20 @@ class AskRequest(BaseModel):
     use_reranker: bool | None = None
 
 
+class Source(BaseModel):
+    filename: str
+    snippet: str
+
+
 class AskResponse(BaseModel):
     answer: str
-    sources: list[str]
+    sources: list[Source]
     latency_ms: int
     latency_breakdown: dict[str, int]
+
+
+class DocumentsResponse(BaseModel):
+    documents: list[str]
 
 
 class HealthResponse(BaseModel):
@@ -175,6 +186,38 @@ def ask(req: AskRequest, request: Request) -> AskResponse:
         sources=result["sources"],
         latency_ms=latency_ms,
         latency_breakdown=result["timings_ms"],
+    )
+
+
+@app.get("/documents", response_model=DocumentsResponse)
+def list_documents() -> DocumentsResponse:
+    """List the PDF files in the knowledge base the assistant answers from."""
+    if not os.path.isdir(KNOWLEDGE_BASE_DIR):
+        return DocumentsResponse(documents=[])
+    names = sorted(
+        f
+        for f in os.listdir(KNOWLEDGE_BASE_DIR)
+        if f.lower().endswith(".pdf")
+        and os.path.isfile(os.path.join(KNOWLEDGE_BASE_DIR, f))
+    )
+    return DocumentsResponse(documents=names)
+
+
+@app.get("/documents/{filename}")
+def get_document(filename: str) -> FileResponse:
+    """Serve a single knowledge-base PDF inline (so it opens in a browser tab).
+
+    Rejects anything that isn't a bare filename to prevent path traversal."""
+    if filename != os.path.basename(filename) or not filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    path = os.path.join(KNOWLEDGE_BASE_DIR, filename)
+    if not os.path.isfile(path):
+        raise HTTPException(status_code=404, detail="Document not found")
+    return FileResponse(
+        path,
+        media_type="application/pdf",
+        filename=filename,
+        content_disposition_type="inline",
     )
 
 

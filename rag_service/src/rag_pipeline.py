@@ -23,33 +23,52 @@ NO_CONTEXT_ANSWER = "В базе знаний нет информации по �
 _CITATION_RE = re.compile(r"\[(\d+)\]")
 
 
-def _filter_cited(answer: str, chunks: list[Chunk]) -> tuple[str, list[str]]:
-    """Keep only sources actually cited as [N] in the answer.
-    Dedupes by source path and renumbers citations sequentially so answer
-    indices match the final sources list. If no valid citation is found,
+def _basename(path: str) -> str:
+    """Filename without directories, normalising both / and \\ separators."""
+    return str(path).replace("\\", "/").rsplit("/", 1)[-1]
+
+
+def _filter_cited(answer: str, chunks: list[Chunk]) -> tuple[str, list[dict]]:
+    """Keep only chunks actually cited as [N] in the answer.
+
+    Dedupes by the cited chunk (so two distinct passages from the same file
+    keep separate numbers — needed for "show the exact passage") and renumbers
+    citations sequentially so answer indices match the final sources list.
+    Each source carries the document ``filename`` and the ``snippet`` (the
+    retrieved chunk text) it was drawn from. If no valid citation is found,
     returns the answer unchanged and an empty sources list."""
-    source_to_new_num: dict[str, int] = {}
+    # Key on chunk identity (source + text) so repeated cites collapse but
+    # different passages of the same document don't.
+    key_to_num: dict[tuple[str, str], int] = {}
+    key_to_chunk: dict[tuple[str, str], Chunk] = {}
     for m in _CITATION_RE.finditer(answer):
         n = int(m.group(1))
         if not (1 <= n <= len(chunks)):
             continue
-        src = chunks[n - 1].source
-        if src not in source_to_new_num:
-            source_to_new_num[src] = len(source_to_new_num) + 1
+        chunk = chunks[n - 1]
+        key = (chunk.source, chunk.text)
+        if key not in key_to_num:
+            key_to_num[key] = len(key_to_num) + 1
+            key_to_chunk[key] = chunk
 
-    if not source_to_new_num:
+    if not key_to_num:
         return answer, []
 
     def _repl(m: re.Match) -> str:
         n = int(m.group(1))
         if 1 <= n <= len(chunks):
-            src = chunks[n - 1].source
-            if src in source_to_new_num:
-                return f"[{source_to_new_num[src]}]"
+            chunk = chunks[n - 1]
+            key = (chunk.source, chunk.text)
+            if key in key_to_num:
+                return f"[{key_to_num[key]}]"
         return m.group(0)
 
     new_answer = _CITATION_RE.sub(_repl, answer)
-    sources = sorted(source_to_new_num, key=lambda s: source_to_new_num[s])
+    ordered = sorted(key_to_num, key=lambda k: key_to_num[k])
+    sources = [
+        {"filename": _basename(key_to_chunk[k].source), "snippet": key_to_chunk[k].text}
+        for k in ordered
+    ]
     return new_answer, sources
 
 

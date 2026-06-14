@@ -42,7 +42,7 @@ def test_pipeline_calls_llm_when_chunks_present():
     result = pipeline.answer("вопрос")
 
     assert result["answer"] == "ответ [1]"
-    assert result["sources"] == ["doc.md"]
+    assert result["sources"] == [{"filename": "doc.md", "snippet": "контент"}]
     assert llm.calls == 1
 
 
