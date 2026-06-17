@@ -229,7 +229,7 @@ export default function App({
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
-      <main className="relative flex h-dvh flex-1 flex-col bg-bg-tint md:ml-[280px]">
+      <main className="relative flex h-dvh min-w-0 flex-1 flex-col bg-bg-tint md:ml-[280px]">
         <TopBar
           title={sessionTitle ?? "Новая беседа"}
           onOpenKnowledgeBase={() => setKbOpen(true)}

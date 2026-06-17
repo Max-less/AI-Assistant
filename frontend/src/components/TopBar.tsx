@@ -51,7 +51,7 @@ export function TopBar({
         >
           <span className="material-symbols-outlined">menu</span>
         </button>
-        <h1 className="truncate font-markdown-h3 text-markdown-h3 text-ink">{title}</h1>
+        <h1 className="min-w-0 truncate font-markdown-h3 text-markdown-h3 text-ink">{title}</h1>
         <div className="hidden items-center gap-1.5 rounded-md bg-surface-container px-2 py-1 md:flex">
           <div className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
           <span className="font-mono-telemetry text-mono-telemetry text-ink-3">{statusText}</span>
