@@ -11,6 +11,9 @@ interface SidebarProps {
   onDelete: (id: number) => void | Promise<void>
   onLogout?: () => void
   user: AuthUser
+  // Mobile drawer state. On md+ the sidebar is always-on and these are ignored.
+  open: boolean
+  onClose: () => void
 }
 
 interface SessionGroup {
@@ -55,8 +58,19 @@ export function Sidebar({
   onDelete,
   onLogout,
   user,
+  open,
+  onClose,
 }: SidebarProps) {
   const groups = useMemo(() => groupSessions(sessions), [sessions])
+  // On mobile, picking a chat or starting a new one should dismiss the drawer.
+  const selectAndClose = (id: number) => {
+    onSelect(id)
+    onClose()
+  }
+  const newChatAndClose = () => {
+    onNewChat()
+    onClose()
+  }
   // Session pending deletion, awaiting confirmation in the modal.
   const [pendingDelete, setPendingDelete] = useState<SessionSummary | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -79,15 +93,35 @@ export function Sidebar({
 
   return (
     <>
-    <nav className="z-20 hidden h-screen w-[280px] flex-col border-r border-border-2 bg-surface-container-low p-4 md:fixed md:left-0 md:top-0 md:flex">
+    {/* Backdrop — mobile only, shown while the drawer is open. */}
+    <div
+      onClick={onClose}
+      aria-hidden="true"
+      className={`fixed inset-0 z-30 bg-black/40 transition-opacity duration-300 md:hidden ${
+        open ? "opacity-100" : "pointer-events-none opacity-0"
+      }`}
+    />
+    <nav
+      className={`fixed left-0 top-0 z-40 flex h-screen w-[280px] flex-col border-r border-border-2 bg-surface-container-low p-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:z-20 md:translate-x-0 ${
+        open ? "translate-x-0 shadow-2xl md:shadow-none" : "-translate-x-full"
+      }`}
+    >
       <div className="mb-6 flex items-center gap-2 px-2">
         <span className="font-hero-heading text-hero-heading text-primary">Свод</span>
         <span className="rounded-sm bg-surface-variant px-1.5 py-0.5 font-mono-label-xs text-mono-label-xs text-ink-3">
           rag·assistant
         </span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Закрыть меню"
+          className="ml-auto rounded-md p-1 text-ink-3 transition-colors hover:bg-surface-container-high hover:text-ink md:hidden"
+        >
+          <span className="material-symbols-outlined text-[20px]">close</span>
+        </button>
       </div>
 
-      <Button variant="outline" className="mb-6 w-full justify-start" onClick={onNewChat}>
+      <Button variant="outline" className="mb-6 w-full justify-start" onClick={newChatAndClose}>
         <span className="material-symbols-outlined text-[18px]">add</span>
         <span>Новая беседа</span>
       </Button>
@@ -109,7 +143,7 @@ export function Sidebar({
                   return (
                     <li key={s.id} className="group/item relative">
                       <button
-                        onClick={() => onSelect(s.id)}
+                        onClick={() => selectAndClose(s.id)}
                         title={s.title}
                         className={
                           active

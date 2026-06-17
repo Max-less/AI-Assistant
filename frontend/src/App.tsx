@@ -64,6 +64,8 @@ export default function App({
   // Right-side panels: a single cited source, and the full knowledge base.
   const [activeSource, setActiveSource] = useState<Source | null>(null)
   const [kbOpen, setKbOpen] = useState(false)
+  // Mobile sidebar drawer (ignored at md+ where the rail is always visible).
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const refreshSessions = useCallback(async () => {
     try {
@@ -148,7 +150,7 @@ export default function App({
         const res = await postChat(text, sessionId)
         setSessionId(res.session_id)
         localStorage.setItem(SESSION_STORAGE_KEY, String(res.session_id))
-        setMessages((prev) => [...prev, fromServerMessage(res.message)])
+        setMessages((prev) => [...prev, { ...fromServerMessage(res.message), reveal: true }])
         if (wasNewSession) {
           const list = await refreshSessions()
           const created = list.find((s) => s.id === res.session_id)
@@ -224,11 +226,14 @@ export default function App({
         onDelete={handleDeleteSession}
         onLogout={onLogout}
         user={user}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
       <main className="relative flex h-screen flex-1 flex-col bg-bg-tint md:ml-[280px]">
         <TopBar
           title={sessionTitle ?? "Новая беседа"}
           onOpenKnowledgeBase={() => setKbOpen(true)}
+          onOpenSidebar={() => setSidebarOpen(true)}
         />
         <MessageList
           messages={messages}

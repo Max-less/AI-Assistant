@@ -13,4 +13,7 @@ export interface ChatMessage {
   latencyBreakdown?: Record<string, number>
   feedback?: -1 | 1 | null
   error?: boolean
+  // Set on a freshly received answer so the UI reveals it with a typewriter
+  // effect. Messages loaded from history render instantly (flag absent).
+  reveal?: boolean
 }

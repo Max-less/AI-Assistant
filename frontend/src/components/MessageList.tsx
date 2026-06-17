@@ -5,7 +5,7 @@ import { AssistantMessage } from "./AssistantMessage"
 
 function UserMessage({ content }: { content: string }) {
   return (
-    <div className="flex max-w-[85%] flex-col gap-2 self-end md:max-w-[70%]">
+    <div className="flex max-w-[85%] flex-col gap-2 self-end animate-fade-in-up md:max-w-[70%]">
       <div className="flex items-center justify-end gap-2 px-1">
         <span className="font-ui-label text-ui-label text-ink-3">Вы</span>
       </div>
@@ -18,7 +18,7 @@ function UserMessage({ content }: { content: string }) {
 
 function Thinking() {
   return (
-    <div className="flex flex-col gap-2 self-start">
+    <div className="flex flex-col gap-2 self-start animate-fade-in-up">
       <div className="flex items-center gap-2 px-1">
         <div className="flex h-6 w-6 items-center justify-center rounded-md border border-primary/20 bg-primary/10">
           <span className="material-symbols-outlined text-[14px] text-primary">auto_awesome</span>
@@ -37,7 +37,7 @@ function Thinking() {
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center gap-3 py-20 text-center">
+    <div className="flex flex-col items-center gap-3 py-20 text-center animate-fade-in">
       <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
         <span className="material-symbols-outlined text-[24px] text-primary">auto_awesome</span>
       </div>
@@ -71,6 +71,10 @@ export function MessageList({
     endRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, loading])
 
+  // Keep the latest answer in view as it types itself out. `auto` (not smooth)
+  // so rapid reveal ticks don't fight the smooth scroll above.
+  const keepInView = () => endRef.current?.scrollIntoView({ behavior: "auto" })
+
   const paddingBottom = (bottomInset ?? 160) + 24
 
   return (
@@ -89,6 +93,7 @@ export function MessageList({
               message={m}
               onFeedback={onFeedback}
               onOpenSource={onOpenSource}
+              onReveal={keepInView}
             />
           ),
         )}

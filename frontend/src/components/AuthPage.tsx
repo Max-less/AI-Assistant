@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { ThemeToggle } from "@/components/ThemeToggle"
 import { cn } from "@/lib/utils"
 import { getOrCreateGuestId, setSession, type AuthUser } from "@/lib/auth"
 import { login, loginAsGuest, register } from "@/lib/api"
@@ -111,7 +112,10 @@ export function AuthPage({ onAuthed }: AuthPageProps) {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-bg">
+    <div className="relative flex h-screen w-screen overflow-hidden bg-bg">
+      <div className="absolute right-3 top-3 z-20">
+        <ThemeToggle />
+      </div>
       {/* Left — brand showcase */}
       <aside className="relative hidden w-[46%] flex-col justify-between overflow-hidden bg-primary p-12 text-on-primary md:flex">
         {/* Decorative gradient blobs */}

@@ -2,6 +2,7 @@ import { Children, type ReactNode, useMemo } from "react"
 import ReactMarkdown, { type Components } from "react-markdown"
 import remarkGfm from "remark-gfm"
 import type { FeedbackValue, Source } from "@/lib/api"
+import { useReveal } from "@/lib/useReveal"
 import type { ChatMessage } from "@/types"
 import { SourcesPanel } from "./SourcesPanel"
 
@@ -26,7 +27,7 @@ function withCitations(children: ReactNode, onCite: (n: number) => void): ReactN
           type="button"
           onClick={() => onCite(n)}
           title="Показать источник"
-          className="mx-0.5 inline-flex items-center rounded bg-accent-bg px-1 align-baseline font-ui-label text-[11px] font-bold text-accent transition-colors hover:bg-accent hover:text-white"
+          className="mx-0.5 inline-flex items-center rounded bg-accent-bg px-1 align-baseline font-ui-label text-[11px] font-bold text-accent transition-colors hover:bg-accent hover:text-surface"
         >
           [{n}]
         </button>,
@@ -165,14 +166,20 @@ interface AssistantMessageProps {
   message: ChatMessage
   onFeedback: (messageId: number, value: FeedbackValue) => void
   onOpenSource: (source: Source) => void
+  onReveal?: () => void
 }
 
 export function AssistantMessage({
   message,
   onFeedback,
   onOpenSource,
+  onReveal,
 }: AssistantMessageProps) {
   const sources = message.sources ?? []
+
+  // Typewriter reveal for freshly received answers; metadata (sources, ratings)
+  // is held back until the text finishes so it doesn't pop in mid-stream.
+  const { shown, done } = useReveal(message.content, message.reveal === true, onReveal)
 
   // Map an inline [N] marker to its source (1-based) and open the side panel.
   const markdownComponents = useMemo(
@@ -185,7 +192,7 @@ export function AssistantMessage({
   )
 
   return (
-    <div className="flex w-full max-w-[95%] flex-col gap-2 self-start md:max-w-[85%]">
+    <div className="flex w-full max-w-[95%] flex-col gap-2 self-start animate-fade-in-up md:max-w-[85%]">
       <div className="flex items-center gap-2 px-1">
         <div className="flex h-6 w-6 items-center justify-center rounded-md border border-primary/20 bg-primary/10">
           <span className="material-symbols-outlined text-[14px] text-primary">auto_awesome</span>
@@ -212,18 +219,18 @@ export function AssistantMessage({
             <span>{message.content}</span>
           </p>
         ) : (
-          <div className="space-y-4">
+          <div className={`space-y-4 ${!done ? "reveal-caret" : ""}`}>
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-              {message.content}
+              {shown}
             </ReactMarkdown>
           </div>
         )}
 
-        {!message.error && (
+        {!message.error && done && (
           <SourcesPanel sources={sources} onOpenSource={onOpenSource} />
         )}
-        {!message.error && <Telemetry message={message} />}
-        {!message.error && <FeedbackBar message={message} onFeedback={onFeedback} />}
+        {!message.error && done && <Telemetry message={message} />}
+        {!message.error && done && <FeedbackBar message={message} onFeedback={onFeedback} />}
       </div>
     </div>
   )
