@@ -28,6 +28,17 @@ def _basename(path: str) -> str:
     return str(path).replace("\\", "/").rsplit("/", 1)[-1]
 
 
+def _clean_snippet(text: str) -> str:
+    """PDF extraction often yields one word per line; rejoin soft line breaks
+    into running prose for display while keeping paragraph breaks."""
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = re.sub(r"(\w)-\n(\w)", r"\1\2", text)  # de-hyphenate split words
+    text = re.sub(r"[ \t]*\n{2,}[ \t]*", "\n\n", text)  # keep paragraph breaks
+    text = re.sub(r"[ \t]*\n[ \t]*", " ", text)  # soft break -> space
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    return text.strip()
+
+
 def _filter_cited(answer: str, chunks: list[Chunk]) -> tuple[str, list[dict]]:
     """Keep only chunks actually cited as [N] in the answer.
 
@@ -66,7 +77,10 @@ def _filter_cited(answer: str, chunks: list[Chunk]) -> tuple[str, list[dict]]:
     new_answer = _CITATION_RE.sub(_repl, answer)
     ordered = sorted(key_to_num, key=lambda k: key_to_num[k])
     sources = [
-        {"filename": _basename(key_to_chunk[k].source), "snippet": key_to_chunk[k].text}
+        {
+            "filename": _basename(key_to_chunk[k].source),
+            "snippet": _clean_snippet(key_to_chunk[k].text),
+        }
         for k in ordered
     ]
     return new_answer, sources

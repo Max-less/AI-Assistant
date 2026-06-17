@@ -4,7 +4,10 @@ Supported: Markdown (.md), PDF (.pdf), DOCX (.docx), TXT (.txt).
 """
 
 import os
+import re
 from dataclasses import dataclass, field
+
+import fitz  # PyMuPDF
 from pypdf import PdfReader
 from docx import Document as DocxDocument
 
@@ -22,11 +25,33 @@ def load_markdown(path: str) -> str:
         return f.read()
 
 
+def _clean_pdf_text(text: str) -> str:
+    """Tidy raw PDF text: stitch words hyphenated across line breaks and trim
+    trailing whitespace, while preserving paragraph structure for the chunker."""
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    # join words split by a hyphen at a line break: "конфигу-\nрацией" -> one word
+    text = re.sub(r"(\w)-\n(\w)", r"\1\2", text)
+    text = re.sub(r"[ \t]+\n", "\n", text)  # trailing spaces
+    text = re.sub(r"\n{3,}", "\n\n", text)  # collapse big gaps
+    return text.strip()
+
+
 def load_pdf(path: str) -> str:
-    """Extract text from a PDF file using pypdf."""
-    reader = PdfReader(path)
-    pages = [page.extract_text() or "" for page in reader.pages]
-    return "\n".join(pages)
+    """Extract text from a PDF.
+
+    Uses PyMuPDF, which reconstructs human reading order far better than pypdf —
+    pypdf emitted glyphs in content-stream order, which on this corpus produced
+    one-word-per-line output and scrambled text on multi-column/diagram pages.
+    Falls back to pypdf only if PyMuPDF can't open the file.
+    """
+    try:
+        with fitz.open(path) as doc:
+            pages = [page.get_text("text") for page in doc]
+        return _clean_pdf_text("\n".join(pages))
+    except Exception:
+        reader = PdfReader(path)
+        pages = [page.extract_text() or "" for page in reader.pages]
+        return _clean_pdf_text("\n".join(pages))
 
 
 def load_docx(path: str) -> str:
