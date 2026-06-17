@@ -80,13 +80,6 @@ export function Composer({
           <div className="flex gap-1 pb-1 pr-1">
             <button
               type="button"
-              className="rounded-lg p-2 text-ink-4 transition-colors hover:bg-surface-container hover:text-ink-2"
-              title="Прикрепить файл (недоступно)"
-            >
-              <span className="material-symbols-outlined text-[20px]">attach_file</span>
-            </button>
-            <button
-              type="button"
               onClick={submit}
               disabled={disabled || !value.trim()}
               className="flex items-center justify-center rounded-lg bg-primary p-2 text-on-primary shadow-sm transition-colors hover:bg-surface-tint disabled:cursor-not-allowed disabled:opacity-50"
