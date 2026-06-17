@@ -1,9 +1,22 @@
 """Pydantic DTOs for /api endpoints."""
 
-from datetime import datetime
-from typing import Any, Literal
+from datetime import datetime, timezone
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, PlainSerializer, field_validator
+
+
+def _to_utc_iso(dt: datetime) -> str:
+    # DB timestamps (SQLite CURRENT_TIMESTAMP) are naive UTC. Tag them as UTC so
+    # the JSON carries an explicit offset; otherwise JS new Date() treats the
+    # string as local time and shifts it (e.g. early-morning rows land in "Вчера").
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.isoformat()
+
+
+# datetime that always serialises with an explicit UTC offset.
+UTCDateTime = Annotated[datetime, PlainSerializer(_to_utc_iso, return_type=str)]
 
 
 def _basename(path: str) -> str:
@@ -32,7 +45,7 @@ class UserOut(BaseModel):
     email: EmailStr | None = None
     name: str | None = None
     is_guest: bool
-    created_at: datetime
+    created_at: UTCDateTime
     # Remaining guest quota; None for registered users.
     guest_remaining: int | None = None
 
@@ -61,7 +74,7 @@ class MessageOut(BaseModel):
     sources: list[Source] | None = None
     latency_ms: int | None = None
     latency_breakdown: dict[str, Any] | None = None
-    created_at: datetime
+    created_at: UTCDateTime
     feedback: Literal[-1, 1] | None = None
 
     @field_validator("sources", mode="before")
@@ -85,14 +98,14 @@ class ChatResponse(BaseModel):
 class SessionSummary(BaseModel):
     id: int
     title: str
-    created_at: datetime
+    created_at: UTCDateTime
     message_count: int
 
 
 class SessionDetail(BaseModel):
     id: int
     title: str
-    created_at: datetime
+    created_at: UTCDateTime
 
 
 class HistoryResponse(BaseModel):
