@@ -1,4 +1,5 @@
 import { documentUrl, type Source } from "@/lib/api"
+import { normalizeSnippet } from "@/lib/utils"
 import { RightDrawer } from "./RightDrawer"
 
 interface SourceDrawerProps {
@@ -38,7 +39,7 @@ export function SourceDrawer({ source, onClose }: SourceDrawerProps) {
                 Фрагмент из документа
               </span>
               <blockquote className="whitespace-pre-wrap border-l-2 border-accent bg-bg p-3 font-body-secondary text-body-secondary leading-relaxed text-ink-2">
-                {source.snippet}
+                {normalizeSnippet(source.snippet)}
               </blockquote>
             </div>
           ) : (
