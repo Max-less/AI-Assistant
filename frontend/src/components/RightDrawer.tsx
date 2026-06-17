@@ -54,7 +54,7 @@ export function RightDrawer({ open, onClose, title, children }: RightDrawerProps
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`relative z-10 flex h-screen w-full max-w-[440px] flex-col border-l border-border-2 bg-surface shadow-xl transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`relative z-10 flex h-dvh w-full max-w-[440px] flex-col border-l border-border-2 bg-surface shadow-xl transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           shown ? "translate-x-0" : "translate-x-full"
         }`}
       >

@@ -217,7 +217,7 @@ export default function App({
   )
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-bg">
+    <div className="flex h-dvh w-screen overflow-hidden bg-bg">
       <Sidebar
         sessions={sessions}
         activeId={sessionId}
@@ -229,7 +229,7 @@ export default function App({
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
-      <main className="relative flex h-screen flex-1 flex-col bg-bg-tint md:ml-[280px]">
+      <main className="relative flex h-dvh flex-1 flex-col bg-bg-tint md:ml-[280px]">
         <TopBar
           title={sessionTitle ?? "Новая беседа"}
           onOpenKnowledgeBase={() => setKbOpen(true)}

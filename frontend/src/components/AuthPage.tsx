@@ -112,7 +112,7 @@ export function AuthPage({ onAuthed }: AuthPageProps) {
   }
 
   return (
-    <div className="relative flex h-screen w-screen overflow-hidden bg-bg">
+    <div className="relative flex h-dvh w-screen overflow-hidden bg-bg">
       <div className="absolute right-3 top-3 z-20">
         <ThemeToggle />
       </div>

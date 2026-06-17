@@ -102,7 +102,7 @@ export function Sidebar({
       }`}
     />
     <nav
-      className={`fixed left-0 top-0 z-40 flex h-screen w-[280px] flex-col border-r border-border-2 bg-surface-container-low p-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:z-20 md:translate-x-0 ${
+      className={`fixed left-0 top-0 z-40 flex h-dvh w-[280px] flex-col border-r border-border-2 bg-surface-container-low p-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:z-20 md:translate-x-0 ${
         open ? "translate-x-0 shadow-2xl md:shadow-none" : "-translate-x-full"
       }`}
     >
