@@ -26,28 +26,6 @@
 
 ---
 
-## 🏗️ Архитектура
-
-```
-┌─────────────┐      /api      ┌──────────────┐    HTTP /ask   ┌──────────────────┐
-│   frontend   │ ─────────────▶ │ web_backend  │ ─────────────▶ │   rag_service     │
-│ React + Vite │  (nginx proxy) │  FastAPI BFF │                │ FastAPI + RAG      │
-│   :8090      │ ◀───────────── │   :8001      │ ◀───────────── │   :8000            │
-└─────────────┘                 └──────┬───────┘                └─────────┬──────────┘
-                                       │                                  │
-                                  SQLite (история,                 Эмбеддинги (e5) +
-                                  пользователи)                    BM25 + reranker +
-                                                                   GigaChat (LLM)
-```
-
-| Сервис        | Технологии                          | Порт (хост) | Назначение                                  |
-|---------------|-------------------------------------|:-----------:|---------------------------------------------|
-| `frontend`    | React, Vite, TailwindCSS, nginx     | **8090**    | Веб-интерфейс (SPA), проксирует `/api`      |
-| `web_backend` | FastAPI, SQLite, JWT                 | **8001**    | Авторизация, история, обратная связь        |
-| `rag_service` | FastAPI, sentence-transformers, GigaChat | **8000** | Поиск по базе знаний и генерация ответа      |
-
----
-
 ## 🧰 Технологический стек
 
 - **Frontend:** React + TypeScript, Vite, TailwindCSS, react-markdown.
@@ -55,23 +33,6 @@
 - **RAG-сервис:** FastAPI, PyMuPDF (извлечение текста PDF), `intfloat/multilingual-e5-base`
   (эмбеддинги), BM25, `BAAI/bge-reranker-v2-m3` (reranker), GigaChat (LLM).
 - **Инфраструктура:** Docker Compose.
-
----
-
-## 📁 Структура проекта
-
-```
-AI-Assistant/
-├── docker-compose.yml          # оркестрация всех трёх сервисов
-├── frontend/                   # React + Vite SPA
-├── web/backend/                # FastAPI BFF (auth, история, обратная связь)
-└── rag_service/                # RAG-пайплайн и HTTP API
-    ├── api.py                  # FastAPI приложение (/ask, /documents, /health)
-    ├── knowledge_base/         # PDF-методички (источники)
-    ├── data/                   # собранный индекс (генерируется, в .gitignore)
-    ├── scripts/                # build_chunks.py, build_index.py и др.
-    └── src/                    # загрузчики, чанкер, эмбеддер, retriever, пайплайн
-```
 
 ---
 
